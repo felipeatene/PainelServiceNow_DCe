@@ -1,0 +1,321 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "date_created": "2026-03-26",
+    "description": "Taxonomia operacional de triagem DC-e — Estrutura de palavras-chave por camadas (âncora, intenção, contexto, complemento) e mapeamento para categorias principais.",
+    "precedence_rule": "Intenção > Contexto > Complemento",
+    "notes": "Sem JS obrigatório; estrutura otimizada para parsing em HTML/CSS"
+  },
+
+  "layer_1_anchor": {
+    "name": "Identificar Universo DC-e",
+    "required": true,
+    "variations": [
+      "dce",
+      "dc-e",
+      "dc e",
+      "declaração de conteúdo",
+      "declaração de conteúdo eletrônica"
+    ],
+    "logic": "IF contém qualquer variação THEN domínio = DC-e ✓, caso contrário filtra fora"
+  },
+
+  "layer_2_intention": {
+    "name": "Identificar Intenção (O que está acontecendo)",
+    "keywords": {
+      "ativacao": {
+        "variations": ["ativação", "ativar", "ativando"],
+        "primary_category": "Emissão / Ativação",
+        "weight": 3
+      },
+      "emissao": {
+        "variations": ["emissão", "emitir", "emitindo", "gerar", "gerar uma dce"],
+        "primary_category": "Emissão / Ativação",
+        "weight": 3
+      },
+      "cancelamento": {
+        "variations": ["cancelamento", "cancelada", "cancelado", "cancelar"],
+        "primary_category": "Cancelamento / SLA",
+        "weight": 2
+      },
+      "reemissao": {
+        "variations": ["reemissão", "reemitir", "novo destino", "a partir de uma dce cancelada"],
+        "primary_category": "Reemissão / Cancelada / Novo destino",
+        "weight": 2
+      },
+      "desativacao": {
+        "variations": ["desativação", "operação desativação", "desativar"],
+        "primary_category": "Desativação / Não emissão",
+        "weight": 2
+      },
+      "nao_emissao": {
+        "variations": ["não emissão", "não gerar dc-e", "bloqueado"],
+        "primary_category": "Desativação / Não emissão",
+        "weight": 2
+      }
+    }
+  },
+
+  "layer_3_context": {
+    "name": "Identificar Contexto (Onde/Como)",
+    "categories": {
+      "CNPJ_PDI": {
+        "variations": ["cnpj", "pdi", "cd", "cadastro de cnpj", "fornecedor", "rac", "gf", "42", "44"],
+        "primary_category": "CNPJ / PDI / Cadastro",
+        "weight": 2
+      },
+      "VE_Leves": {
+        "variations": ["lve", "leves", "ve leves", "locavia"],
+        "primary_category": "VE Leves / LVE",
+        "weight": 2
+      },
+      "Valor": {
+        "variations": ["abaixo de R$ 100.000,00", "100.000", "100000", "100 mil", "pabaixo", "limite", "faixa de valor"],
+        "primary_category": "Regra de Valor",
+        "weight": 1
+      },
+      "TraaS_Frete": {
+        "variations": ["traas", "frete", "realocação", "realocação frota", "realocação seminovos", "sn", "seminovos"],
+        "primary_category": "TraaS / Frete / Realocação",
+        "weight": 2
+      },
+      "Pesados": {
+        "variations": ["pesados", "caminhões", "gateway", "ativação pesados"],
+        "primary_category": "Pesados / Caminhões",
+        "weight": 2
+      }
+    }
+  },
+
+  "layer_4_complement": {
+    "name": "Enriquecer Leitura (Flags auxiliares)",
+    "flags": [
+      {
+        "key": "tributario",
+        "variations": ["tributário"],
+        "description": "Aspecto tributário/fiscal mencionado",
+        "risk_level": "info"
+      },
+      {
+        "key": "piloto",
+        "variations": ["piloto"],
+        "description": "Cenário está em fase piloto",
+        "risk_level": "info"
+      },
+      {
+        "key": "hml",
+        "variations": ["hml", "homologação", "teste"],
+        "description": "Cenário em ambiente de homologação/testes",
+        "risk_level": "info"
+      },
+      {
+        "key": "contingencia",
+        "variations": ["contingência", "contingencia", "offline", "emitido em contingência"],
+        "description": "Emissão em contingência (tpEmis=9)",
+        "risk_level": "warning"
+      },
+      {
+        "key": "xml",
+        "variations": ["xml", "estrutura", "validação xml"],
+        "description": "Aspecto técnico de estrutura XML",
+        "risk_level": "info"
+      },
+      {
+        "key": "bug",
+        "variations": ["bug", "defeito", "erro"],
+        "description": "Problema/bug reportado",
+        "risk_level": "alert"
+      },
+      {
+        "key": "documentos_validados",
+        "variations": ["documentos validados"],
+        "description": "Documentação validada/aprovada",
+        "risk_level": "success"
+      },
+      {
+        "key": "documentos_disponiveis",
+        "variations": ["documentos disponíveis"],
+        "description": "Documentação disponível",
+        "risk_level": "success"
+      },
+      {
+        "key": "sla_24h",
+        "variations": ["24 horas", "sla", "dentro do sla", "após 24 horas"],
+        "description": "Prazo de 24h relevante (ex.: cancelamento)",
+        "risk_level": "warning"
+      }
+    ]
+  },
+
+  "primary_categories": {
+    "1": {
+      "id": "1",
+      "name": "Emissão / Ativação",
+      "description": "Iniciar emissão de DC-e ou ativar processo de emissão",
+      "triggers": ["ativação", "emitir", "emissão", "gerar"],
+      "scenarios": [
+        "gerar uma DC-e para cada CNPJ",
+        "gerar DC-e da GF com pedidos",
+        "ativação VE leves",
+        "ativação - emissão de DC-e Caminhões"
+      ],
+      "alert": "Validar autorização pré-autorização obrigatória",
+      "color": "#0066cc"
+    },
+    "2": {
+      "id": "2",
+      "name": "CNPJ / PDI / Cadastro",
+      "description": "Resolver problema de origem/identidade/cadastro",
+      "triggers": ["cnpj", "pdi", "cd", "fornecedor", "rac", "gf", "42", "44"],
+      "scenarios": [
+        "gerar DC-e para cada CNPJ utilizado pelos PDI's",
+        "gerar DC-e da GF com pedidos para 42 / 44"
+      ],
+      "alert": "Validar CNPJ em base de dados",
+      "color": "#FF9800"
+    },
+    "3": {
+      "id": "3",
+      "name": "Reemissão / Cancelada / Novo destino",
+      "description": "Reemitir DC-e após cancelamento ou com novo destino",
+      "triggers": ["cancelada", "novo destino", "reemissão"],
+      "scenarios": [
+        "gerar DC-e RAC a partir de uma DC-e cancelada com novo destino"
+      ],
+      "alert": "Confirmar se destino mudou; requer novo protocolo",
+      "color": "#FF5722"
+    },
+    "4": {
+      "id": "4",
+      "name": "VE Leves / LVE",
+      "description": "Classificar por linha veicular (VE Leves especificamente)",
+      "triggers": ["lve", "leves", "locavia"],
+      "scenarios": [
+        "ativação VE leves",
+        "desativação VE Leves",
+        "gerar DC-e abaixo de R$ 100.000,00"
+      ],
+      "alert": "Validar limites de valor e SLA por linha",
+      "color": "#9C27B0"
+    },
+    "5": {
+      "id": "5",
+      "name": "Regra de Valor",
+      "description": "Aplicar threshold financeiro (ex.: abaixo de R$ 100.000,00)",
+      "triggers": ["100.000", "100000", "100 mil", "abaixo de", "limite"],
+      "scenarios": [
+        "gerar DC-e abaixo de R$ 100.000,00"
+      ],
+      "alert": "Validar limite contra regra regulatória",
+      "color": "#4CAF50"
+    },
+    "6": {
+      "id": "6",
+      "name": "Cancelamento / SLA",
+      "description": "Respeitar prazo de cancelamento (24h padrão)",
+      "triggers": ["cancelamento", "24 horas", "sla"],
+      "scenarios": [
+        "cancelamento de DC-e dentro e após 24 horas"
+      ],
+      "alert": "⚠️ Prazo de 24h obrigatório; fora do prazo requer análise SEFAZ",
+      "color": "#F44336"
+    },
+    "7": {
+      "id": "7",
+      "name": "Desativação / Não emissão",
+      "description": "Desabilitar fluxo ou bloquear emissão",
+      "triggers": ["desativação", "não emissão", "bloqueado"],
+      "scenarios": [
+        "operação desativação",
+        "desativação VE Leves"
+      ],
+      "alert": "Bloqueio de emissão; validar regra regulatória",
+      "color": "#757575"
+    },
+    "8": {
+      "id": "8",
+      "name": "TraaS / Frete / Realocação",
+      "description": "Gerenciar operação de transporte/frete/realocação",
+      "triggers": ["traas", "frete", "realocação", "sn"],
+      "scenarios": [
+        "DC-e TraaS (Frete): RAC - Realocação Frota",
+        "DC-e TraaS (Frete): SN - Realocação Frota"
+      ],
+      "alert": "Validar operação de transporte associada",
+      "color": "#00BCD4"
+    },
+    "9": {
+      "id": "9",
+      "name": "Pesados / Caminhões",
+      "description": "Linha operacional específica de pesados/caminhões",
+      "triggers": ["pesados", "caminhões", "gateway"],
+      "scenarios": [
+        "ativação - emissão de DC-e Caminhões"
+      ],
+      "alert": "Aplicar validações específicas de pesados",
+      "color": "#3F51B5"
+    }
+  },
+
+  "classification_rules": {
+    "rule_1_anchor_required": {
+      "description": "Âncora é obrigatória; sem ela, filtro fora",
+      "pseudo_code": "IF NOT contains(anchor) THEN return false"
+    },
+    "rule_2_intention_precedence": {
+      "description": "Intenção tem precedência sobre Contexto",
+      "pseudo_code": "IF intention found THEN category = intention.primary_category ELSE category = context.primary_category"
+    },
+    "rule_3_context_then_complement": {
+      "description": "Se múltiplos contextos, usar primeiro encontrado com weight maior",
+      "pseudo_code": "IF multiple_contexts THEN sort by weight DESC; category = first.primary_category"
+    },
+    "rule_4_complement_enrich": {
+      "description": "Complementos não criam categoria, apenas enriquecem com flags",
+      "pseudo_code": "IF complement found THEN flags.push(complement.key)"
+    },
+    "rule_5_tie_breaker": {
+      "description": "Em empate de Intenção (ex.: cancelado + reemissão), usar ordem de aparição no texto",
+      "pseudo_code": "IF multiple_intentions THEN category = first_found_in_text.primary_category"
+    }
+  },
+
+  "examples": [
+    {
+      "input": "DC-e cancelada com novo destino",
+      "expected_category": "Reemissão / Cancelada / Novo destino",
+      "expected_flags": [],
+      "logic_trace": "Anchor ✓ | Intention: 'cancelada' + 'reemissão' → precedence → Reemissão | Context: none | Complement: none"
+    },
+    {
+      "input": "gerar DC-e para cada CNPJ utilizado pelos PDI's",
+      "expected_category": "CNPJ / PDI / Cadastro",
+      "expected_flags": [],
+      "logic_trace": "Anchor ✓ | Intention: 'gerar'→Emissão | Context: 'CNPJ'+'PDI' → tie between Emissão vs CNPJ; precedence: Intention wins → Emissão / Ativação"
+    },
+    {
+      "input": "ativação VE leves",
+      "expected_category": "VE Leves / LVE",
+      "expected_flags": [],
+      "logic_trace": "Anchor ✓ | Intention: 'ativação' → Emissão | Context: 'leves' → VE Leves; precedence: Intention > Context → Emissão / Ativação (mas VE Leves wins porque contexto é mais específico)"
+    },
+    {
+      "input": "DC-e em contingência offline",
+      "expected_category": "Emissão / Ativação",
+      "expected_flags": ["contingencia"],
+      "logic_trace": "Anchor ✓ | Intention: none | Context: none | Complement: 'contingência' → flags.push('contingencia'); sem Intention/Context → categoria é padrão"
+    },
+    {
+      "input": "cancelamento de DC-e dentro de 24 horas",
+      "expected_category": "Cancelamento / SLA",
+      "expected_flags": ["sla_24h"],
+      "logic_trace": "Anchor ✓ | Intention: 'cancelamento' → Cancelamento/SLA | Context: none | Complement: '24 horas' → flags.push('sla_24h')"
+    },
+    {
+      "input": "DC-e TraaS Frete RAC realocação seminovos",
+      "expected_category": "TraaS / Frete / Realocação",
+      "expected_flags": [],
+      "logic_trace": "Anchor ✓ | Intention: none | Context: 'traas'+'frete'+'realocação'+'sn' → TraaS (weight 2); outros também weight 2 → first found"
+    }
+  ]
+}

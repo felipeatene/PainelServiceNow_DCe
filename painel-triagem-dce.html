@@ -1,0 +1,1351 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Painel de Triagem DC-e</title>
+    
+    <style>
+        /* ============================================
+           RESET E ESTILOS BASE
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Namespace global para painel */
+        .dce-panel {
+            --primary: #0066cc;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #F44336;
+            --info: #00BCD4;
+            --neutral: #757575;
+            --bg-light: #f5f5f5;
+            --bg-white: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #666;
+            --border: #e0e0e0;
+            
+            --cat-emissao: #0066cc;
+            --cat-cnpj: #FF9800;
+            --cat-reemissao: #FF5722;
+            --cat-leves: #9C27B0;
+            --cat-valor: #4CAF50;
+            --cat-cancelamento: #F44336;
+            --cat-desativacao: #757575;
+            --cat-traas: #00BCD4;
+            --cat-pesados: #3F51B5;
+            
+            --font-primary: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: "Courier New", monospace;
+            
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+            --shadow-lg: 0 8px 20px rgba(0,0,0,0.15);
+            
+            font-family: var(--font-primary);
+            color: var(--text-primary);
+            background: var(--bg-white);
+            line-height: 1.6;
+        }
+        
+        /* ============================================
+           HEADER
+           ============================================ */
+        
+        .dce-header {
+            padding: var(--spacing-xl);
+            background: linear-gradient(135deg, var(--bg-white) 0%, var(--bg-light) 100%);
+            border-bottom: 4px solid var(--primary);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .dce-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .dce-header p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .dce-header .metadata {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* ============================================
+           ALERTAS REGULATORIOS
+           ============================================ */
+        
+        .dce-alerts {
+            position: relative;
+            padding: var(--spacing-md);
+            border-left: 4px solid var(--danger);
+            background: #fff7f7;
+            margin-bottom: var(--spacing-xl);
+            border-radius: var(--radius-md);
+            z-index: 1;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(244, 67, 54, 0.18);
+        }
+        
+        .dce-alerts h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--danger);
+            margin-bottom: var(--spacing-md);
+            font-weight: 600;
+        }
+        
+        .dce-alerts ul {
+            list-style: none;
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+        
+        .dce-alerts li {
+            font-size: 0.9rem;
+            padding-left: var(--spacing-lg);
+            position: relative;
+            line-height: 1.45;
+        }
+        
+        .dce-alerts li::before {
+            content: "!";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .dce-alerts li:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* ============================================
+           KPI CARDS
+           ============================================ */
+        
+        .dce-kpis {
+            position: relative;
+            z-index: 2;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .dce-kpis h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-primary);
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .kpi-card {
+            padding: var(--spacing-md);
+            background: var(--bg-white);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .kpi-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .kpi-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        /* Cores por categoria */
+        .kpi-card[data-category="total"] { --color: var(--primary); }
+        .kpi-card[data-category="emissao"] { --color: var(--cat-emissao); }
+        .kpi-card[data-category="cnpj"] { --color: var(--cat-cnpj); }
+        .kpi-card[data-category="reemissao"] { --color: var(--cat-reemissao); }
+        .kpi-card[data-category="cancelamento"] { --color: var(--cat-cancelamento); }
+        
+        .kpi-card[data-category] {
+            border-left-color: var(--color, var(--primary));
+        }
+        
+        .kpi-card[data-category] .kpi-number {
+            color: var(--color, var(--primary));
+        }
+
+        .kpi-link {
+            display: inline-block;
+            margin-top: var(--spacing-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #000;
+            text-decoration: none;
+            border-bottom: 1px dashed #000;
+            transition: opacity 0.3s ease;
+        }
+
+        .kpi-link:hover {
+            opacity: 0.6;
+        }
+        
+        /* ============================================
+           FILTROS POR CAMADA
+           ============================================ */
+        
+        .dce-filters {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .dce-filters h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+            padding-bottom: var(--spacing-md);
+        }
+        
+        .filter-tab-input {
+            display: none;
+        }
+        
+        .filter-tab-label {
+            padding: var(--spacing-sm) var(--spacing-md);
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .filter-tab-label:hover {
+            color: var(--primary);
+        }
+        
+        .filter-tab-input:checked + .filter-tab-label {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .filter-content {
+            display: none;
+            padding: var(--spacing-lg);
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+        }
+        
+        .filter-tab-input:checked + .filter-tab-label + .filter-content {
+            display: block;
+        }
+        
+        .chip {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: var(--spacing-xs);
+            color: var(--text-primary);
+        }
+        
+        .chip[data-type="intention"] {
+            background: rgba(0, 102, 204, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .chip[data-type="context"] {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+        
+        /* ============================================
+           SECAO DE GRAFICOS
+           ============================================ */
+        
+        .dce-visuals {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .dce-visuals h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .visual-block {
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+        }
+        
+        .visual-block h3 {
+            font-size: 1.25rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+        
+        .visual-block p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: var(--spacing-md);
+        }
+        
+        .dce-sankey,
+        .dce-heatmap,
+        .dce-progress-rings {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: var(--spacing-md) 0;
+            border-radius: var(--radius-md);
+            background: var(--bg-white);
+            padding: var(--spacing-md);
+        }
+        
+        /* SVG Internals */
+        .sankey-node {
+            fill: white;
+            stroke: var(--border);
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .sankey-node:hover {
+            fill: rgba(0, 102, 204, 0.1);
+            stroke: var(--primary);
+            stroke-width: 3;
+        }
+        
+        .sankey-flow {
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        .sankey-flow:hover {
+            opacity: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .heatmap-cell {
+            stroke: white;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .heatmap-cell:hover {
+            stroke: var(--text-primary);
+            stroke-width: 3;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .progress-ring-background {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 8;
+        }
+        
+        .progress-ring-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+        
+        /* ============================================
+           CATEGORIAS (CARD GRID)
+           ============================================ */
+        
+        .dce-categories {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .dce-categories h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        
+        .category-card {
+            padding: var(--spacing-lg);
+            background: var(--bg-white);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .category-number {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        .category-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary);
+            padding-top: 1rem;
+        }
+        
+        .category-card[data-cat="emissao"] { --color: var(--cat-emissao); }
+        .category-card[data-cat="cnpj"] { --color: var(--cat-cnpj); }
+        .category-card[data-cat="reemissao"] { --color: var(--cat-reemissao); }
+        .category-card[data-cat="leves"] { --color: var(--cat-leves); }
+        .category-card[data-cat="cancelamento"] { --color: var(--cat-cancelamento); }
+        .category-card[data-cat="desativacao"] { --color: var(--cat-desativacao); }
+        .category-card[data-cat="traas"] { --color: var(--cat-traas); }
+        .category-card[data-cat="pesados"] { --color: var(--cat-pesados); }
+        
+        .category-card[data-cat] {
+            border-left-color: var(--color);
+            background: rgba(var(--color), 0.02);
+        }
+        
+        .category-card[data-cat] h3 {
+            color: var(--color);
+        }
+        
+        .category-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
+            flex-grow: 1;
+        }
+        
+        .category-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color, var(--primary));
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .category-link:hover {
+            opacity: 0.9;
+            transform: translateX(2px);
+        }
+        
+        /* ============================================
+           MATRIZ DE DECISAO
+           ============================================ */
+        
+        .dce-matrix {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .matrix-details summary {
+            padding: var(--spacing-md);
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 600;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+        
+        .matrix-details summary:hover {
+            background: var(--border);
+        }
+        
+        .matrix-details[open] summary {
+            background: var(--primary);
+            color: white;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+        
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+        
+        .matrix-table th {
+            background: var(--bg-light);
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .matrix-table td {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        /* ============================================
+           FOOTER
+           ============================================ */
+        
+        .dce-footer {
+            padding: var(--spacing-xl);
+            border-top: 1px solid var(--border);
+            background: var(--bg-light);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: var(--spacing-xl);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+        
+        /* ============================================
+           RESPONSIVIDADE
+           ============================================ */
+        
+        @media (max-width: 640px) {
+            .dce-panel {
+                --spacing-xl: 1.5rem;
+                --spacing-lg: 1rem;
+            }
+            
+            .dce-header {
+                padding: var(--spacing-lg);
+            }
+            
+            .dce-header h1 {
+                font-size: 2rem;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-tabs {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* ============================================
+           ACESSIBILIDADE
+           ============================================ */
+        
+        :focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="dce-panel">
+        
+        <!-- HEADER -->
+        <header class="dce-header">
+            <h1>Painel de Triagem DC-e</h1>
+            <p>Classificacao inteligente por camadas - Visao geral operacional</p>
+            <p class="metadata">Versão 1.0 | Atualizado em 26/03/2026</p>
+        </header>
+        
+        <!-- ALERTAS REGULATORIOS -->
+        <section class="dce-alerts" role="alert" aria-live="assertive">
+            <h3>Pontos Obrigatorios</h3>
+            <ul>
+                <li><strong>06/04/2026:</strong> Data oficial de obrigatoriedade nacional (Ajuste SINIEF 22/2025)</li>
+                <li><strong>Autorização Pré-Transporte:</strong> DC-e deve ser autorizada ANTES do início do transporte</li>
+                <li><strong>Uso Exclusivo:</strong> Apenas para operações SEM emissão de Nota Fiscal Eletrônica (NF-e)</li>
+            </ul>
+        </section>
+        
+        <!-- KPI CARDS -->
+        <section class="dce-kpis">
+            <h2>Resumo de Classificações</h2>
+            <div class="kpi-grid">
+                <div class="kpi-card" data-category="total">
+                    <div class="kpi-number">245</div>
+                    <div class="kpi-label">Total de Itens</div>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="kpi-link">Ver total ></a>
+                </div>
+                <div class="kpi-card" data-category="emissao">
+                    <div class="kpi-number">189</div>
+                    <div class="kpi-label">Emissão/Ativação</div>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="kpi-link">Ver total ></a>
+                </div>
+                <div class="kpi-card" data-category="reemissao">
+                    <div class="kpi-number">44</div>
+                    <div class="kpi-label">Reemissão</div>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="kpi-link">Ver total ></a>
+                </div>
+                <div class="kpi-card" data-category="cancelamento">
+                    <div class="kpi-number">12</div>
+                    <div class="kpi-label">Cancelamento/SLA</div>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="kpi-link">Ver total ></a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- FILTROS POR CAMADA -->
+        <section class="dce-filters">
+            <h2>Filtros por Camada</h2>
+            
+            <div class="filter-tabs">
+                <input type="radio" id="tab-anchor" name="filter-tab" class="filter-tab-input" checked>
+                <label for="tab-anchor" class="filter-tab-label">Ancora</label>
+                <div class="filter-content">
+                    <p><strong>Palavras-chave encontradas:</strong></p>
+                    <span class="chip" data-type="anchor">dce</span>
+                    <span class="chip" data-type="anchor">dc-e</span>
+                    <span class="chip" data-type="anchor">dc e</span>
+                    <span class="chip" data-type="anchor">declaração de conteúdo</span>
+                    <span class="chip" data-type="anchor">declaração de conteúdo eletrônica</span>
+                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
+                        Todos os 245 itens contem ancora valida de DC-e.
+                    </p>
+                </div>
+                
+                <input type="radio" id="tab-intention" name="filter-tab" class="filter-tab-input">
+                <label for="tab-intention" class="filter-tab-label">Intencao</label>
+                <div class="filter-content">
+                    <p><strong>Distribuição por intenção:</strong></p>
+                    <span class="chip" data-type="intention">ativação (120)</span>
+                    <span class="chip" data-type="intention">emissão (89)</span>
+                    <span class="chip" data-type="intention">gerar (45)</span>
+                    <span class="chip" data-type="intention">cancelada (44)</span>
+                    <span class="chip" data-type="intention">reemissão (12)</span>
+                    <span class="chip" data-type="intention">desativação (8)</span>
+                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
+                        Clicar em uma intenção filtra itens com essa ação.
+                    </p>
+                </div>
+                
+                <input type="radio" id="tab-context" name="filter-tab" class="filter-tab-input">
+                <label for="tab-context" class="filter-tab-label">Contexto</label>
+                <div class="filter-content">
+                    <p><strong>Distribuição por contexto operacional:</strong></p>
+                    <span class="chip" data-type="context">CNPJ (67)</span>
+                    <span class="chip" data-type="context">PDI (45)</span>
+                    <span class="chip" data-type="context">LVE (34)</span>
+                    <span class="chip" data-type="context">TraaS (23)</span>
+                    <span class="chip" data-type="context">Pesados (8)</span>
+                    <span class="chip" data-type="context">Valor/100k (21)</span>
+                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
+                        Contexto refina a classificação quando não há intenção clara.
+                    </p>
+                </div>
+                
+                <input type="radio" id="tab-complement" name="filter-tab" class="filter-tab-input">
+                <label for="tab-complement" class="filter-tab-label">Complemento +</label>
+                <div class="filter-content">
+                    <p><strong>Flags encontradas (enriquecimento):</strong></p>
+                    <span class="chip" data-type="context">tributário (34)</span>
+                    <span class="chip" data-type="context">contingência (21)</span>
+                    <span class="chip" data-type="context">HML (12)</span>
+                    <span class="chip" data-type="context">XML (8)</span>
+                    <span class="chip" data-type="context">SLA 24h (18)</span>
+                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
+                        Complementos não definem categoria, apenas enriquecem o contexto.
+                    </p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- SECAO DE GRAFICOS -->
+        <section class="dce-visuals">
+            <h2>Visao Geral - Graficos de Analise</h2>
+            
+            <!-- Sankey Diagram -->
+            <div class="visual-block">
+                <h3>Sankey: Fluxo de Classificação por Camadas</h3>
+                <svg class="dce-sankey" viewBox="0 0 1000 350" preserveAspectRatio="xMidYMid meet">
+                    <!-- Coluna 1: Ancora -->
+                    <g class="sankey-column">
+                        <rect x="30" y="130" width="80" height="100" class="sankey-node" fill="white" stroke="#e0e0e0" stroke-width="2"/>
+                        <text x="70" y="185" class="sankey-label" font-size="1.5rem" font-weight="700" text-anchor="middle" fill="#212121">245</text>
+                        <text x="70" y="208" font-size="0.7rem" text-anchor="middle" fill="#666" text-transform="uppercase">DC-e</text>
+                    </g>
+                    
+                    <!-- Conexões -->
+                    <path d="M 110 180 L 200 100" stroke="#0066cc" stroke-width="3" fill="none" opacity="0.5"/>
+                    <path d="M 110 180 L 200 200" stroke="#FF5722" stroke-width="2" fill="none" opacity="0.5"/>
+                    <path d="M 110 180 L 200 260" stroke="#F44336" stroke-width="1" fill="none" opacity="0.5"/>
+                    
+                    <!-- Coluna 2: Intenção -->
+                    <g class="sankey-column">
+                        <rect x="200" y="70" width="80" height="70" class="sankey-node" fill="#0066cc" opacity="0.1" stroke="#0066cc" stroke-width="2"/>
+                        <text x="240" y="110" font-size="1.25rem" font-weight="700" text-anchor="middle" fill="#0066cc">189</text>
+                        <text x="240" y="128" font-size="0.7rem" text-anchor="middle" fill="#0066cc">Emissão</text>
+                        
+                        <rect x="200" y="170" width="80" height="40" class="sankey-node" fill="#FF5722" opacity="0.1" stroke="#FF5722" stroke-width="2"/>
+                        <text x="240" y="195" font-size="1rem" font-weight="700" text-anchor="middle" fill="#FF5722">44</text>
+                        
+                        <rect x="200" y="240" width="80" height="20" class="sankey-node" fill="#F44336" opacity="0.1" stroke="#F44336" stroke-width="2"/>
+                        <text x="240" y="250" font-size="0.85rem" font-weight="700" text-anchor="middle" fill="#F44336">12</text>
+                    </g>
+                    
+                    <!-- Coluna 3: Contexto (exemplo simplificado) -->
+                    <g class="sankey-column">
+                        <rect x="380" y="50" width="80" height="50" class="sankey-node" fill="#FF9800" opacity="0.1" stroke="#FF9800" stroke-width="2"/>
+                        <text x="420" y="80" font-size="1rem" font-weight="700" text-anchor="middle" fill="#FF9800">67</text>
+                        <text x="420" y="95" font-size="0.65rem" text-anchor="middle" fill="#666">CNPJ</text>
+                    </g>
+                    
+                    <!-- Labels dos eixos -->
+                    <text x="70" y="310" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Ancora</text>
+                    <text x="240" y="310" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Intenção</text>
+                    <text x="420" y="310" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Contexto</text>
+                </svg>
+                <p>Este gráfico mostra como os 245 itens DC-e fluem através das camadas de classificação: todos passam pela âncora verificada; 189 por intenção clara; 44 são reemissões; 12 cancelamentos.</p>
+            </div>
+            
+            <!-- Heatmap -->
+            <div class="visual-block">
+                <h3>Heatmap: Categorias x Status</h3>
+                <svg class="dce-heatmap" viewBox="0 0 600 280" preserveAspectRatio="xMidYMid meet">
+                    <!-- Cabeçalhos X -->
+                    <text x="150" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Processando</text>
+                    <text x="250" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Fila</text>
+                    <text x="350" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Concluído</text>
+                    <text x="450" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Bloqueado</text>
+                    
+                    <!-- Cabeçalhos Y -->
+                    <text x="50" y="70" text-anchor="end" font-size="0.9rem" font-weight="600">Emissão</text>
+                    <text x="50" y="140" text-anchor="end" font-size="0.9rem" font-weight="600">Reemissão</text>
+                    <text x="50" y="210" text-anchor="end" font-size="0.9rem" font-weight="600">CNPJ/PDI</text>
+                    
+                    <!-- Células Heatmap (cores: verde/amarelo/vermelho based on values) -->
+                    <!-- Linha 1: Emissão -->
+                    <rect x="120" y="40" width="60" height="50" class="heatmap-cell" fill="#4CAF50" stroke="white" stroke-width="2"/>
+                    <text x="150" y="70" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">89</text>
+                    
+                    <rect x="220" y="40" width="60" height="50" class="heatmap-cell" fill="#FF9800" stroke="white" stroke-width="2"/>
+                    <text x="250" y="70" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">45</text>
+                    
+                    <rect x="320" y="40" width="60" height="50" class="heatmap-cell" fill="#F44336" stroke="white" stroke-width="2"/>
+                    <text x="350" y="70" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">12</text>
+                    
+                    <rect x="420" y="40" width="60" height="50" class="heatmap-cell" fill="#e0e0e0" stroke="white" stroke-width="2"/>
+                    <text x="450" y="70" text-anchor="middle" fill="#666" font-weight="700" font-size="0.9rem">0</text>
+                    
+                    <!-- Linha 2: Reemissão -->
+                    <rect x="120" y="110" width="60" height="50" class="heatmap-cell" fill="#F44336" opacity="0.5" stroke="white" stroke-width="2"/>
+                    <text x="150" y="140" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">2</text>
+                    
+                    <rect x="220" y="110" width="60" height="50" class="heatmap-cell" fill="#FF9800" stroke="white" stroke-width="2"/>
+                    <text x="250" y="140" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">4</text>
+                    
+                    <rect x="320" y="110" width="60" height="50" class="heatmap-cell" fill="#4CAF50" stroke="white" stroke-width="2"/>
+                    <text x="350" y="140" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">10</text>
+                    
+                    <rect x="420" y="110" width="60" height="50" class="heatmap-cell" fill="#e0e0e0" stroke="white" stroke-width="2"/>
+                    <text x="450" y="140" text-anchor="middle" fill="#666" font-weight="700" font-size="0.9rem">0</text>
+                    
+                    <!-- Linha 3: CNPJ/PDI -->
+                    <rect x="120" y="180" width="60" height="50" class="heatmap-cell" fill="#e0e0e0" stroke="white" stroke-width="2"/>
+                    <text x="150" y="210" text-anchor="middle" fill="#666" font-weight="700" font-size="0.9rem">0</text>
+                    
+                    <rect x="220" y="180" width="60" height="50" class="heatmap-cell" fill="#FF9800" stroke="white" stroke-width="2"/>
+                    <text x="250" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">4</text>
+                    
+                    <rect x="320" y="180" width="60" height="50" class="heatmap-cell" fill="#4CAF50" stroke="white" stroke-width="2"/>
+                    <text x="350" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">10</text>
+                    
+                    <rect x="420" y="180" width="60" height="50" class="heatmap-cell" fill="#FF9800" opacity="0.6" stroke="white" stroke-width="2"/>
+                    <text x="450" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">2</text>
+                </svg>
+                <p>Cores: Verde (alto valor) | Amarelo (medio) | Vermelho (baixo). Mostra distribuicao de categorias por status operacional.</p>
+            </div>
+            
+            <!-- Progress Rings -->
+            <div class="visual-block">
+                <h3>KPI: Anéis de Progresso</h3>
+                <svg class="dce-progress-rings" viewBox="0 0 600 150">
+                    <!-- Total -->
+                    <g transform="translate(70, 75)">
+                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
+                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#0066cc" style="stroke-dasharray: 314; stroke-dashoffset: 0;"/>
+                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#0066cc">245</text>
+                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Total</text>
+                    </g>
+                    
+                    <!-- Sucesso (77%) -->
+                    <g transform="translate(200, 75)">
+                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
+                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#4CAF50" style="stroke-dasharray: 314; stroke-dashoffset: 72;"/>
+                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#4CAF50">77%</text>
+                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Sucesso</text>
+                    </g>
+                    
+                    <!-- Falha (5%) -->
+                    <g transform="translate(330, 75)">
+                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
+                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#F44336" style="stroke-dasharray: 314; stroke-dashoffset: 298;"/>
+                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#F44336">5%</text>
+                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Falha</text>
+                    </g>
+                    
+                    <!-- Pendente (18%) -->
+                    <g transform="translate(460, 75)">
+                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
+                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#FF9800" style="stroke-dasharray: 314; stroke-dashoffset: 257;"/>
+                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#FF9800">18%</text>
+                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Pendente</text>
+                    </g>
+                </svg>
+                <p>Distribuição visual de progresso por categoria: sucesso (77%), pendente (18%), falha (5%). Use para monitorar saúde geral da triagem.</p>
+            </div>
+        </section>
+        
+        <!-- CATEGORIAS GRID -->
+        <section class="dce-categories">
+            <h2>Categorias Operacionais</h2>
+            <div class="category-grid">
+                <!-- Card 1 -->
+                <div class="category-card" data-cat="emissao">
+                    <div class="category-number">01</div>
+                    <h3>Emissão / Ativação</h3>
+                    <p class="category-description">Iniciar emissão de DC-e ou ativar processo de emissão. Foco: gerar, ativar, emitir.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="category-card" data-cat="cnpj">
+                    <div class="category-number">02</div>
+                    <h3>CNPJ / PDI / Cadastro</h3>
+                    <p class="category-description">Resolver problema de origem/identidade/cadastro. Foco: validar CNPJ, PDI, origem.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 3 -->
+                <div class="category-card" data-cat="reemissao">
+                    <div class="category-number">03</div>
+                    <h3>Reemissão / Cancelada</h3>
+                    <p class="category-description">Reemitir DC-e após cancelamento ou com novo destino. Foco: novo destino, reemitir.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 4 -->
+                <div class="category-card" data-cat="leves">
+                    <div class="category-number">04</div>
+                    <h3>VE Leves / LVE</h3>
+                    <p class="category-description">Classificar por linha veicular específica (VE Leves, Locavia). Aplicar limites e SLA.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 5 -->
+                <div class="category-card" data-cat="cancelamento">
+                    <div class="category-number">05</div>
+                    <h3>Cancelamento / SLA</h3>
+                    <p class="category-description">Respeitar prazo de cancelamento (24h obrigatorio). Critico: validar SLA.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 6 -->
+                <div class="category-card" data-cat="traas">
+                    <div class="category-number">06</div>
+                    <h3>TraaS / Frete / Realocação</h3>
+                    <p class="category-description">Gerenciar operação de transporte/frete/realocação. Validar operação associada.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 7 -->
+                <div class="category-card" data-cat="pesados">
+                    <div class="category-number">07</div>
+                    <h3>Pesados / Caminhões</h3>
+                    <p class="category-description">Linha operacional específica de pesados/caminhões. Aplicar validações de linha.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+                
+                <!-- Card 8 -->
+                <div class="category-card" data-cat="desativacao">
+                    <div class="category-number">08</div>
+                    <h3>Desativação / Não Emissão</h3>
+                    <p class="category-description">Desabilitar fluxo ou bloquear emissao. Bloqueio: validar regra obrigatoria.</p>
+                    <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- MATRIZ DE DECISAO -->
+        <section class="dce-matrix">
+            <details class="matrix-details">
+                <summary>Matriz de Decisao - Como a Classificacao Funciona</summary>
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th>SE CONTEM...</th>
+                            <th>ENTAO CATEGORIA...</th>
+                            <th>EXEMPLO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ativação</strong> + contexto</td>
+                            <td>Emissão / Ativação</td>
+                            <td>"ativação VE leves"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>gerar</strong> + contexto</td>
+                            <td>Emissão / Ativação</td>
+                            <td>"gerar DC-e para CNPJ"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>cancelada</strong> + novo destino</td>
+                            <td>Reemissão / Cancelada</td>
+                            <td>"cancelada com novo destino"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>cancelamento</strong> + 24h</td>
+                            <td>Cancelamento / SLA</td>
+                            <td>"cancelamento em 24 horas"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>traas</strong> + frete + rac</td>
+                            <td>TraaS / Frete / Realocação</td>
+                            <td>"TraaS Frete RAC"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>leve</strong> + locavia</td>
+                            <td>VE Leves / LVE</td>
+                            <td>"ativação VE leves Locavia"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pesado</strong> + caminhão</td>
+                            <td>Pesados / Caminhões</td>
+                            <td>"ativação de caminhões"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>desativação</strong> ou não emissão</td>
+                            <td>Desativação / Não Emissão</td>
+                            <td>"operação desativação"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </details>
+        </section>
+        
+        <!-- FOOTER -->
+        <footer class="dce-footer">
+            <p>
+                <strong>Painel de Triagem DC-e v1.0</strong> | 
+                Ultima atualizacao: 26/03/2026 | 
+                Baseado em taxonomy.json + decision-matrix.md
+            </p>
+            <p style="margin-top: var(--spacing-sm); font-size: 0.8rem;">
+                Documentacao tecnica disponivel em <code>p:/Projetos/DC-e/</code>
+            </p>
+        </footer>
+        
+    </div>
+    
+    <!-- Dados JSON Embutidos (para processamento futuro) -->
+    <script type="application/json" id="dce-data">
+    {
+        "version": "1.0",
+        "last_updated": "2026-03-26T10:30:00Z",
+        "kpi_summary": {
+            "total_items": 245,
+            "success_count": 189,
+            "success_percentage": 77,
+            "failure_count": 12,
+            "failure_percentage": 5,
+            "pending_count": 44,
+            "pending_percentage": 18
+        },
+        "categories": [
+            { "id": 1, "name": "Emissão / Ativação", "count": 120, "color": "#0066cc" },
+            { "id": 2, "name": "CNPJ / PDI / Cadastro", "count": 67, "color": "#FF9800" },
+            { "id": 3, "name": "Reemissão / Cancelada", "count": 34, "color": "#FF5722" },
+            { "id": 4, "name": "VE Leves / LVE", "count": 22, "color": "#9C27B0" },
+            { "id": 5, "name": "Cancelamento / SLA", "count": 12, "color": "#F44336" },
+            { "id": 6, "name": "TraaS / Frete", "count": 8, "color": "#00BCD4" },
+            { "id": 7, "name": "Pesados / Caminhões", "count": 3, "color": "#3F51B5" },
+            { "id": 8, "name": "Desativação / Não Emissão", "count": 2, "color": "#757575" }
+        ]
+    }
+    </script>
+
+    <!-- Integracao ServiceNow para UI Page/HTML control. -->
+    <script>
+    (function () {
+        'use strict';
+
+        var CFG = {
+            fallbackInstance: 'https://ibmlocaliza.service-now.com',
+            table: 'incident',
+            baseQuery: 'active=true^123TEXTQUERY321=DC-e',
+            fieldList: 'sys_id,number,short_description,description',
+            pageSize: 200,
+            maxRows: 2000,
+            refreshMs: 300000
+        };
+
+        var CATEGORY_SPECS = {
+            emissao: {
+                label: 'Emissao/Ativacao',
+                broadQuery: '^short_descriptionLIKEativacao^ORdescriptionLIKEativacao^ORshort_descriptionLIKEativar^ORdescriptionLIKEativar^ORshort_descriptionLIKEemissao^ORdescriptionLIKEemissao^ORshort_descriptionLIKEemitir^ORdescriptionLIKEemitir^ORshort_descriptionLIKEgerar^ORdescriptionLIKEgerar'
+            },
+            cnpj: {
+                label: 'CNPJ / PDI / Cadastro',
+                broadQuery: '^short_descriptionLIKEcnpj^ORdescriptionLIKEcnpj^ORshort_descriptionLIKEpdi^ORdescriptionLIKEpdi^ORshort_descriptionLIKEfornecedor^ORdescriptionLIKEfornecedor^ORshort_descriptionLIKEcadastro^ORdescriptionLIKEcadastro'
+            },
+            reemissao: {
+                label: 'Reemissao / Cancelada',
+                broadQuery: '^short_descriptionLIKEreemissao^ORdescriptionLIKEreemissao^ORshort_descriptionLIKEreemitir^ORdescriptionLIKEreemitir^ORshort_descriptionLIKEnovo destino^ORdescriptionLIKEnovo destino^ORshort_descriptionLIKEcancelada^ORdescriptionLIKEcancelada'
+            },
+            leves: {
+                label: 'VE Leves / LVE',
+                broadQuery: '^short_descriptionLIKElve^ORdescriptionLIKElve^ORshort_descriptionLIKEleves^ORdescriptionLIKEleves^ORshort_descriptionLIKElocavia^ORdescriptionLIKElocavia'
+            },
+            cancelamento: {
+                label: 'Cancelamento / SLA',
+                broadQuery: '^short_descriptionLIKEcancelamento^ORdescriptionLIKEcancelamento^ORshort_descriptionLIKEcancelar^ORdescriptionLIKEcancelar^ORshort_descriptionLIKE24 horas^ORdescriptionLIKE24 horas^ORshort_descriptionLIKEsla^ORdescriptionLIKEsla'
+            },
+            traas: {
+                label: 'TraaS / Frete / Realocacao',
+                broadQuery: '^short_descriptionLIKEtraas^ORdescriptionLIKEtraas^ORshort_descriptionLIKEfrete^ORdescriptionLIKEfrete^ORshort_descriptionLIKErealocacao^ORdescriptionLIKErealocacao^ORshort_descriptionLIKEseminovos^ORdescriptionLIKEseminovos'
+            },
+            pesados: {
+                label: 'Pesados / Caminhoes',
+                broadQuery: '^short_descriptionLIKEpesados^ORdescriptionLIKEpesados^ORshort_descriptionLIKEcaminhoes^ORdescriptionLIKEcaminhoes^ORshort_descriptionLIKEgateway^ORdescriptionLIKEgateway'
+            },
+            desativacao: {
+                label: 'Desativacao / Nao Emissao',
+                broadQuery: '^short_descriptionLIKEdesativacao^ORdescriptionLIKEdesativacao^ORshort_descriptionLIKEbloqueado^ORdescriptionLIKEbloqueado^ORshort_descriptionLIKEnao emissao^ORdescriptionLIKEnao emissao'
+            }
+        };
+
+        function serviceNowBase() {
+            if (window.location && /service-now\.com$/i.test(window.location.hostname)) {
+                return window.location.origin;
+            }
+            return CFG.fallbackInstance;
+        }
+
+        function normalizeText(value) {
+            var text = String(value || '').toLowerCase();
+            if (text.normalize) {
+                text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            }
+            return text;
+        }
+
+        function containsAny(text, terms) {
+            return terms.some(function (term) {
+                return text.indexOf(term) !== -1;
+            });
+        }
+
+        function hasAnchor(text) {
+            return containsAny(text, [
+                'dce',
+                'dc-e',
+                'dc e',
+                'declaracao de conteudo',
+                'declaracao de conteudo eletronica'
+            ]);
+        }
+
+        function classifyRecord(record) {
+            var text = normalizeText((record.short_description || '') + ' ' + (record.description || ''));
+
+            if (!hasAnchor(text)) {
+                return null;
+            }
+
+            if (containsAny(text, ['reemissao', 'reemitir', 'novo destino', 'a partir de uma dce cancelada'])) {
+                return 'reemissao';
+            }
+
+            if (containsAny(text, ['cancelamento', 'cancelada', 'cancelado', 'cancelar'])) {
+                return 'cancelamento';
+            }
+
+            if (containsAny(text, ['desativacao', 'desativar', 'nao emissao', 'nao gerar dc-e', 'bloqueado'])) {
+                return 'desativacao';
+            }
+
+            if (containsAny(text, ['lve', 'leves', 've leves', 'locavia'])) {
+                return 'leves';
+            }
+
+            if (containsAny(text, ['traas', 'frete', 'realocacao', 'realocacao frota', 'realocacao seminovos', 'seminovos', 'sn'])) {
+                return 'traas';
+            }
+
+            if (containsAny(text, ['pesados', 'caminhoes', 'gateway', 'ativacao pesados'])) {
+                return 'pesados';
+            }
+
+            if (containsAny(text, ['cnpj', 'pdi', 'cd', 'cadastro de cnpj', 'fornecedor', 'rac', 'gf', '42', '44'])) {
+                return 'cnpj';
+            }
+
+            if (containsAny(text, ['ativacao', 'ativar', 'ativando', 'emissao', 'emitir', 'emitindo', 'gerar', 'gerar uma dce'])) {
+                return 'emissao';
+            }
+
+            return 'emissao';
+        }
+
+        function listUrlForIds(ids, categoryKey) {
+            var base = serviceNowBase();
+            if (!ids || !ids.length) {
+                return base + '/' + CFG.table + '_list.do?sysparm_query=' + encodeURIComponent(CFG.baseQuery + (CATEGORY_SPECS[categoryKey] ? CATEGORY_SPECS[categoryKey].broadQuery : ''));
+            }
+
+            var query = 'sys_idIN' + ids.join(',');
+            var exactUrl = base + '/' + CFG.table + '_list.do?sysparm_query=' + encodeURIComponent(query);
+
+            if (exactUrl.length < 7000) {
+                return exactUrl;
+            }
+
+            return base + '/' + CFG.table + '_list.do?sysparm_query=' + encodeURIComponent(CFG.baseQuery + (CATEGORY_SPECS[categoryKey] ? CATEGORY_SPECS[categoryKey].broadQuery : ''));
+        }
+
+        function totalListUrl() {
+            return serviceNowBase() + '/' + CFG.table + '_list.do?sysparm_query=' + encodeURIComponent(CFG.baseQuery);
+        }
+
+        function apiUrl(offset) {
+            return serviceNowBase() + '/api/now/table/' + CFG.table +
+                '?sysparm_query=' + encodeURIComponent(CFG.baseQuery) +
+                '&sysparm_fields=' + encodeURIComponent(CFG.fieldList) +
+                '&sysparm_limit=' + CFG.pageSize +
+                '&sysparm_offset=' + (offset || 0) +
+                '&sysparm_display_value=false&sysparm_exclude_reference_link=true';
+        }
+
+        function fetchJson(url) {
+            return fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'include'
+            }).then(function (res) {
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json();
+            });
+        }
+
+        function fetchAllRecords(offset, bucket) {
+            var safeOffset = offset || 0;
+            var records = bucket || [];
+
+            if (records.length >= CFG.maxRows) {
+                return Promise.resolve(records);
+            }
+
+            return fetchJson(apiUrl(safeOffset)).then(function (json) {
+                var page = (json && json.result) || [];
+                var combined = records.concat(page);
+
+                if (page.length < CFG.pageSize || combined.length >= CFG.maxRows) {
+                    return combined.slice(0, CFG.maxRows);
+                }
+
+                return fetchAllRecords(safeOffset + CFG.pageSize, combined);
+            });
+        }
+
+        function setLoadingState() {
+            document.querySelectorAll('.kpi-card .kpi-number').forEach(function (node) {
+                node.dataset.original = node.textContent;
+                node.textContent = '...';
+                node.style.opacity = '0.35';
+            });
+        }
+
+        function restoreStaticState(reason) {
+            document.querySelectorAll('.kpi-card .kpi-number').forEach(function (node) {
+                node.textContent = node.dataset.original || node.textContent;
+                node.style.opacity = '1';
+            });
+
+            document.querySelectorAll('.kpi-card .kpi-link').forEach(function (link) {
+                link.href = totalListUrl();
+            });
+
+            document.querySelectorAll('.category-card .category-link').forEach(function (link) {
+                var card = link.closest('[data-cat]');
+                var cat = card ? card.getAttribute('data-cat') : '';
+                link.href = listUrlForIds([], cat);
+            });
+
+            var meta = document.querySelector('.metadata');
+            if (meta && meta.textContent.indexOf('Dados estaticos') === -1) {
+                meta.innerHTML += ' | <span style="color:#757575">Dados estaticos</span>';
+                if (reason) {
+                    meta.title = reason;
+                }
+            }
+        }
+
+        function applyLiveData(records) {
+            var groupedIds = {
+                emissao: [],
+                cnpj: [],
+                reemissao: [],
+                leves: [],
+                cancelamento: [],
+                traas: [],
+                pesados: [],
+                desativacao: []
+            };
+
+            records.forEach(function (record) {
+                var category = classifyRecord(record);
+                if (category && groupedIds[category]) {
+                    groupedIds[category].push(record.sys_id);
+                }
+            });
+
+            var kpiMap = {
+                total: records.length,
+                emissao: groupedIds.emissao.length,
+                reemissao: groupedIds.reemissao.length,
+                cancelamento: groupedIds.cancelamento.length
+            };
+
+            document.querySelectorAll('.kpi-card').forEach(function (card) {
+                var category = card.getAttribute('data-category');
+                var numberNode = card.querySelector('.kpi-number');
+                var linkNode = card.querySelector('.kpi-link');
+
+                if (numberNode && kpiMap[category] !== undefined) {
+                    numberNode.textContent = kpiMap[category].toLocaleString('pt-BR');
+                    numberNode.style.opacity = '1';
+                }
+
+                if (linkNode) {
+                    linkNode.href = category === 'total' ? totalListUrl() : listUrlForIds(groupedIds[category] || [], category);
+                    linkNode.target = '_blank';
+                    linkNode.rel = 'noopener';
+                }
+            });
+
+            document.querySelectorAll('.category-card').forEach(function (card) {
+                var category = card.getAttribute('data-cat');
+                var linkNode = card.querySelector('.category-link');
+                if (linkNode) {
+                    linkNode.href = listUrlForIds(groupedIds[category] || [], category);
+                    linkNode.target = '_blank';
+                    linkNode.rel = 'noopener';
+                }
+            });
+
+            var meta = document.querySelector('.metadata');
+            if (meta) {
+                var now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                meta.innerHTML += ' | <span style="color:#4CAF50;font-weight:600">Ao vivo ' + now + '</span>';
+            }
+        }
+
+        function loadLiveData() {
+            setLoadingState();
+
+            fetchAllRecords(0, [])
+                .then(function (records) {
+                    applyLiveData(records);
+                    if (CFG.refreshMs > 0) {
+                        setTimeout(loadLiveData, CFG.refreshMs);
+                    }
+                })
+                .catch(function (err) {
+                    restoreStaticState(err.message);
+                    console.warn('[DC-e Painel] Falha ao carregar dados do ServiceNow:', err.message);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            restoreStaticState('Modo inicial');
+            loadLiveData();
+        });
+    }());
+    </script>
+
+</body>
+</html>
