@@ -222,6 +222,35 @@
         .kpi-link:hover {
             opacity: 0.6;
         }
+
+        /* ============================================
+           SHAREPOINT DC-e KPIs
+           ============================================ */
+
+        .dce-sp-kpis {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .dce-sp-kpis h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .sp-status {
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin-left: var(--spacing-sm);
+            vertical-align: middle;
+            color: var(--text-secondary);
+        }
+
+        .sp-status.sp-online  { color: #4CAF50; }
+        .sp-status.sp-offline { color: #F44336; }
+
+        .kpi-card[data-category="sp-total"]  { --color: #0066cc; }
+        .kpi-card[data-category="sp-active"] { --color: #4CAF50; }
+        .kpi-card[data-category="sp-done"]   { --color: #757575; }
+        .kpi-card[data-category="sp-link"]   { --color: #FF9800; }
         
         /* ============================================
            FILTROS POR CAMADA (Accordion)
@@ -408,6 +437,51 @@
             color: var(--text-secondary);
             font-style: italic;
         }
+
+        /* Cascata visual: camada afetada por filtro superior */
+        .filter-layer.layer-narrowed > summary::after {
+            content: ' ↑ filtrado';
+            font-size: 0.7rem;
+            opacity: 0.55;
+            margin-left: 8px;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        /* Chip desabilitado por cascata */
+        .chip-label.chip-disabled {
+            opacity: 0.32;
+            pointer-events: none;
+            border-style: dashed;
+        }
+
+        /* Cabeçalho dos filtros com botão Limpar */
+        .filters-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .filters-header h2 {
+            margin-bottom: 0;
+        }
+
+        #btn-clear-filters {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            text-decoration: underline;
+            text-decoration-style: dashed;
+            transition: opacity 0.2s;
+        }
+
+        #btn-clear-filters:hover { opacity: 0.65; }
         
         /* ============================================
            SECAO DE GRAFICOS
@@ -442,7 +516,6 @@
         }
         
         .dce-sankey,
-        .dce-heatmap,
         .dce-progress-rings {
             width: 100%;
             height: auto;
@@ -477,19 +550,6 @@
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         
-        .heatmap-cell {
-            stroke: white;
-            stroke-width: 2;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .heatmap-cell:hover {
-            stroke: var(--text-primary);
-            stroke-width: 3;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-        }
-        
         .progress-ring-background {
             fill: none;
             stroke: var(--border);
@@ -501,6 +561,84 @@
             stroke-width: 8;
             stroke-linecap: round;
             transition: stroke-dashoffset 1s ease-in-out;
+        }
+        
+        /* Filter summary bar */
+        .filter-summary-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: linear-gradient(135deg, var(--primary) 0%, #004a99 100%);
+            color: white;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            transition: background 0.4s ease;
+        }
+        .filter-summary-bar .summary-left {
+            display: flex;
+            align-items: baseline;
+            gap: var(--spacing-sm);
+        }
+        .filter-summary-bar .summary-count {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .filter-summary-bar .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+        .filter-summary-bar .summary-right {
+            font-size: 0.8rem;
+            opacity: 0.65;
+            font-style: italic;
+        }
+
+        /* Rings responsive grid */
+        .rings-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacing-md);
+        }
+        @media (max-width: 640px) {
+            .rings-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .ring-item {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .ring-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        .ring-item svg {
+            display: block;
+            margin: 0 auto var(--spacing-xs);
+        }
+
+        /* Sankey container */
+        .sankey-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .sankey-container svg rect {
+            cursor: pointer;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+        }
+        .sankey-container svg rect:hover {
+            filter: brightness(0.92) drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+        }
+        .sankey-container svg path {
+            transition: opacity 0.4s ease, stroke-width 0.4s ease;
+        }
+        .sankey-container svg text {
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
         
         /* ============================================
@@ -858,6 +996,32 @@
             background: #d5d5d5;
         }
 
+        .auth-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 4px;
+        }
+
+        .auth-input {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            transition: border-color .2s;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 99, 177, 0.15);
+        }
+
         .auth-status-msg {
             padding: 10px 14px;
             border-radius: 6px;
@@ -945,14 +1109,25 @@
                 <p>Conecte-se ao ServiceNow para carregar dados ao vivo e acessar consultas.</p>
             </div>
             <div class="auth-body">
-                <p>O painel precisa de uma sessão ativa no ServiceNow para buscar incidentes e gerar links de consulta.</p>
-                <p>Clique no botão abaixo para abrir a página de login em uma nova aba. Após fazer login, volte aqui e clique em <strong>"Verificar Conexão"</strong>.</p>
-                <div id="auth-msg" class="auth-status-msg"></div>
-                <button id="auth-login-btn" class="auth-btn primary" type="button">Entrar com conta Microsoft</button>
-                <button id="auth-check-btn" class="auth-btn secondary" type="button">Verificar Conexão</button>
+                <!-- Estado: não-autenticado (formulário) -->
+                <div id="auth-form-area">
+                    <p>Informe suas credenciais do ServiceNow. A autenticação é feita pelo servidor local — nada é enviado a terceiros.</p>
+                    <div id="auth-msg" class="auth-status-msg"></div>
+                    <label class="auth-label" for="auth-user">Usuário</label>
+                    <input id="auth-user" class="auth-input" type="text" placeholder="usuario.exemplo" autocomplete="username" />
+                    <label class="auth-label" for="auth-pass">Senha</label>
+                    <input id="auth-pass" class="auth-input" type="password" placeholder="••••••••" autocomplete="current-password" />
+                    <button id="auth-login-btn" class="auth-btn primary" type="button">Conectar</button>
+                    <button id="auth-check-btn" class="auth-btn secondary" type="button">Verificar Conexão</button>
+                </div>
+                <!-- Estado: autenticado -->
+                <div id="auth-connected-area" style="display:none">
+                    <div id="auth-msg-ok" class="auth-status-msg success"></div>
+                    <button id="auth-logout-btn" class="auth-btn secondary" type="button">Desconectar</button>
+                </div>
             </div>
             <div class="auth-footer-bar">
-                A sessão expira conforme política do ServiceNow. O painel verificará automaticamente.
+                As credenciais ficam apenas na memória do servidor local enquanto ele estiver rodando.
             </div>
         </aside>
         
@@ -999,10 +1174,37 @@
                 </div>
             </div>
         </section>
+
+        <!-- SHAREPOINT DC-e: Cenários V2 -->
+        <section class="dce-sp-kpis">
+            <h2>Cenários DC-e <span class="sp-status" id="sp-status">⏳ aguardando...</span></h2>
+            <div class="kpi-grid">
+                <div class="kpi-card" data-category="sp-total">
+                    <div class="kpi-number" id="sp-total">—</div>
+                    <div class="kpi-label">Total de Cenários</div>
+                </div>
+                <div class="kpi-card" data-category="sp-active">
+                    <div class="kpi-number" id="sp-active">—</div>
+                    <div class="kpi-label">Cenários Ativos</div>
+                </div>
+                <div class="kpi-card" data-category="sp-done">
+                    <div class="kpi-number" id="sp-done">—</div>
+                    <div class="kpi-label">Concluídos</div>
+                </div>
+                <div class="kpi-card" data-category="sp-link">
+                    <div class="kpi-number">→</div>
+                    <div class="kpi-label">Painel Completo</div>
+                    <a href="painel-cenarios-sp.html" class="kpi-link">Abrir detalhes ></a>
+                </div>
+            </div>
+        </section>
         
         <!-- FILTROS POR CAMADA (Accordion + Chips selecionáveis) -->
         <section class="dce-filters">
-            <h2>Filtros por Camada</h2>
+            <div class="filters-header">
+                <h2>Filtros por Camada</h2>
+                <button id="btn-clear-filters" title="Restaurar todos os filtros para o estado inicial">↺ Limpar filtros</button>
+            </div>
             
             <div class="filter-accordion">
 
@@ -1127,153 +1329,30 @@
             </div>
         </section>
         
-        <!-- SECAO DE GRAFICOS -->
+        <!-- SECAO DE GRAFICOS (interativo com filtros) -->
         <section class="dce-visuals">
-            <h2>Visao Geral - Graficos de Analise</h2>
+            <h2>Visão Geral — Gráficos de Análise</h2>
             
-            <!-- Sankey Diagram -->
-            <div class="visual-block">
-                <h3>Sankey: Fluxo de Classificação por Camadas</h3>
-                <svg class="dce-sankey" viewBox="0 0 1000 350" preserveAspectRatio="xMidYMid meet">
-                    <!-- Coluna 1: Ancora -->
-                    <g class="sankey-column">
-                        <rect x="30" y="130" width="80" height="100" class="sankey-node" fill="white" stroke="#e0e0e0" stroke-width="2"/>
-                        <text x="70" y="185" class="sankey-label" font-size="1.5rem" font-weight="700" text-anchor="middle" fill="#212121">245</text>
-                        <text x="70" y="208" font-size="0.7rem" text-anchor="middle" fill="#666" text-transform="uppercase">DC-e</text>
-                    </g>
-                    
-                    <!-- Conexões -->
-                    <path d="M 110 180 L 200 100" stroke="#0066cc" stroke-width="3" fill="none" opacity="0.5"/>
-                    <path d="M 110 180 L 200 200" stroke="#FF5722" stroke-width="2" fill="none" opacity="0.5"/>
-                    <path d="M 110 180 L 200 260" stroke="#F44336" stroke-width="1" fill="none" opacity="0.5"/>
-                    
-                    <!-- Coluna 2: Intenção -->
-                    <g class="sankey-column">
-                        <rect x="200" y="70" width="80" height="70" class="sankey-node" fill="#0066cc" opacity="0.1" stroke="#0066cc" stroke-width="2"/>
-                        <text x="240" y="110" font-size="1.25rem" font-weight="700" text-anchor="middle" fill="#0066cc">189</text>
-                        <text x="240" y="128" font-size="0.7rem" text-anchor="middle" fill="#0066cc">Emissão</text>
-                        
-                        <rect x="200" y="170" width="80" height="40" class="sankey-node" fill="#FF5722" opacity="0.1" stroke="#FF5722" stroke-width="2"/>
-                        <text x="240" y="195" font-size="1rem" font-weight="700" text-anchor="middle" fill="#FF5722">44</text>
-                        
-                        <rect x="200" y="240" width="80" height="20" class="sankey-node" fill="#F44336" opacity="0.1" stroke="#F44336" stroke-width="2"/>
-                        <text x="240" y="250" font-size="0.85rem" font-weight="700" text-anchor="middle" fill="#F44336">12</text>
-                    </g>
-                    
-                    <!-- Coluna 3: Contexto (exemplo simplificado) -->
-                    <g class="sankey-column">
-                        <rect x="380" y="50" width="80" height="50" class="sankey-node" fill="#FF9800" opacity="0.1" stroke="#FF9800" stroke-width="2"/>
-                        <text x="420" y="80" font-size="1rem" font-weight="700" text-anchor="middle" fill="#FF9800">67</text>
-                        <text x="420" y="95" font-size="0.65rem" text-anchor="middle" fill="#666">CNPJ</text>
-                    </g>
-                    
-                    <!-- Labels dos eixos -->
-                    <text x="70" y="310" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Ancora</text>
-                    <text x="240" y="310" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Intenção</text>
-                    <text x="420" y="310" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Contexto</text>
-                </svg>
-                <p>Este gráfico mostra como os 245 itens DC-e fluem através das camadas de classificação: todos passam pela âncora verificada; 189 por intenção clara; 44 são reemissões; 12 cancelamentos.</p>
+            <div class="filter-summary-bar" id="filter-summary">
+                <div class="summary-left">
+                    <span class="summary-count" id="summary-count">245</span>
+                    <span class="summary-label">itens filtrados de 245</span>
+                </div>
+                <span class="summary-right">Selecione filtros acima para refinar os gráficos</span>
             </div>
             
-            <!-- Heatmap (colapsável - dados agora nos cards) -->
-            <details class="visual-block">
-                <summary style="cursor:pointer;font-weight:600;font-size:1rem;list-style:none;display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:0.7rem;">▶</span> Heatmap: Categorias x Status (expandir tabela completa)
-                </summary>
-                <div style="padding-top:var(--spacing-md);">
-                <svg class="dce-heatmap" viewBox="0 0 600 280" preserveAspectRatio="xMidYMid meet">
-                    <!-- Cabeçalhos X -->
-                    <text x="150" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Processando</text>
-                    <text x="250" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Fila</text>
-                    <text x="350" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Concluído</text>
-                    <text x="450" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Bloqueado</text>
-                    
-                    <!-- Cabeçalhos Y -->
-                    <text x="50" y="70" text-anchor="end" font-size="0.9rem" font-weight="600">Emissão</text>
-                    <text x="50" y="140" text-anchor="end" font-size="0.9rem" font-weight="600">Reemissão</text>
-                    <text x="50" y="210" text-anchor="end" font-size="0.9rem" font-weight="600">CNPJ/PDI</text>
-                    
-                    <!-- Células Heatmap (cores: verde/amarelo/vermelho based on values) -->
-                    <!-- Linha 1: Emissão -->
-                    <rect x="120" y="40" width="60" height="50" class="heatmap-cell" fill="#4CAF50" stroke="white" stroke-width="2"/>
-                    <text x="150" y="70" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">89</text>
-                    
-                    <rect x="220" y="40" width="60" height="50" class="heatmap-cell" fill="#FF9800" stroke="white" stroke-width="2"/>
-                    <text x="250" y="70" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">45</text>
-                    
-                    <rect x="320" y="40" width="60" height="50" class="heatmap-cell" fill="#F44336" stroke="white" stroke-width="2"/>
-                    <text x="350" y="70" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">12</text>
-                    
-                    <rect x="420" y="40" width="60" height="50" class="heatmap-cell" fill="#e0e0e0" stroke="white" stroke-width="2"/>
-                    <text x="450" y="70" text-anchor="middle" fill="#666" font-weight="700" font-size="0.9rem">0</text>
-                    
-                    <!-- Linha 2: Reemissão -->
-                    <rect x="120" y="110" width="60" height="50" class="heatmap-cell" fill="#F44336" opacity="0.5" stroke="white" stroke-width="2"/>
-                    <text x="150" y="140" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">2</text>
-                    
-                    <rect x="220" y="110" width="60" height="50" class="heatmap-cell" fill="#FF9800" stroke="white" stroke-width="2"/>
-                    <text x="250" y="140" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">4</text>
-                    
-                    <rect x="320" y="110" width="60" height="50" class="heatmap-cell" fill="#4CAF50" stroke="white" stroke-width="2"/>
-                    <text x="350" y="140" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">10</text>
-                    
-                    <rect x="420" y="110" width="60" height="50" class="heatmap-cell" fill="#e0e0e0" stroke="white" stroke-width="2"/>
-                    <text x="450" y="140" text-anchor="middle" fill="#666" font-weight="700" font-size="0.9rem">0</text>
-                    
-                    <!-- Linha 3: CNPJ/PDI -->
-                    <rect x="120" y="180" width="60" height="50" class="heatmap-cell" fill="#e0e0e0" stroke="white" stroke-width="2"/>
-                    <text x="150" y="210" text-anchor="middle" fill="#666" font-weight="700" font-size="0.9rem">0</text>
-                    
-                    <rect x="220" y="180" width="60" height="50" class="heatmap-cell" fill="#FF9800" stroke="white" stroke-width="2"/>
-                    <text x="250" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">4</text>
-                    
-                    <rect x="320" y="180" width="60" height="50" class="heatmap-cell" fill="#4CAF50" stroke="white" stroke-width="2"/>
-                    <text x="350" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="1.2rem">10</text>
-                    
-                    <rect x="420" y="180" width="60" height="50" class="heatmap-cell" fill="#FF9800" opacity="0.6" stroke="white" stroke-width="2"/>
-                    <text x="450" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">2</text>
-                </svg>
-                <p>Cores: Verde (alto valor) | Amarelo (medio) | Vermelho (baixo). Mostra distribuicao de categorias por status operacional.</p>
-                </div>
-            </details>
-            
-            <!-- Progress Rings -->
+            <!-- Progress Rings (dinâmico) -->
             <div class="visual-block">
                 <h3>KPI: Anéis de Progresso</h3>
-                <svg class="dce-progress-rings" viewBox="0 0 600 150">
-                    <!-- Total -->
-                    <g transform="translate(70, 75)">
-                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
-                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#0066cc" style="stroke-dasharray: 314; stroke-dashoffset: 0;"/>
-                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#0066cc">245</text>
-                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Total</text>
-                    </g>
-                    
-                    <!-- Sucesso (77%) -->
-                    <g transform="translate(200, 75)">
-                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
-                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#4CAF50" style="stroke-dasharray: 314; stroke-dashoffset: 72;"/>
-                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#4CAF50">77%</text>
-                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Sucesso</text>
-                    </g>
-                    
-                    <!-- Falha (5%) -->
-                    <g transform="translate(330, 75)">
-                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
-                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#F44336" style="stroke-dasharray: 314; stroke-dashoffset: 298;"/>
-                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#F44336">5%</text>
-                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Falha</text>
-                    </g>
-                    
-                    <!-- Pendente (18%) -->
-                    <g transform="translate(460, 75)">
-                        <circle cx="0" cy="0" r="50" class="progress-ring-background"/>
-                        <circle cx="0" cy="0" r="50" class="progress-ring-progress" stroke="#FF9800" style="stroke-dasharray: 314; stroke-dashoffset: 257;"/>
-                        <text x="0" y="10" text-anchor="middle" font-size="1.5rem" font-weight="700" fill="#FF9800">18%</text>
-                        <text x="0" y="28" text-anchor="middle" font-size="0.8rem" text-transform="uppercase" fill="#666">Pendente</text>
-                    </g>
-                </svg>
-                <p>Distribuição visual de progresso por categoria: sucesso (77%), pendente (18%), falha (5%). Use para monitorar saúde geral da triagem.</p>
+                <div class="rings-grid" id="rings-container"></div>
+                <p>Distribuição de progresso baseada nos filtros ativos.</p>
+            </div>
+            
+            <!-- Sankey Diagram (dinâmico) -->
+            <div class="visual-block">
+                <h3>Fluxo de Classificação por Camadas</h3>
+                <div class="sankey-container" id="sankey-container"></div>
+                <p>Selecione chips nos filtros para ajustar o fluxo. Clique nos nós do gráfico para ativar/desativar filtros.</p>
             </div>
         </section>
         
@@ -1286,10 +1365,10 @@
                     <div class="category-number">01</div>
                     <h3>Emissão / Ativação</h3>
                     <div class="card-status-bar" id="status-emissao">
-                        <span class="status-badge processing"><span class="badge-dot"></span>89</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>45</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>55</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 89</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 45</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 55</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 0</span>
                     </div>
                     <p class="category-description">Iniciar emissão de DC-e ou ativar processo de emissão. Foco: gerar, ativar, emitir.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1300,10 +1379,10 @@
                     <div class="category-number">02</div>
                     <h3>CNPJ / PDI / Cadastro</h3>
                     <div class="card-status-bar" id="status-cnpj">
-                        <span class="status-badge processing"><span class="badge-dot"></span>12</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>8</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>10</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>2</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 12</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 8</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 10</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 2</span>
                     </div>
                     <p class="category-description">Resolver problema de origem/identidade/cadastro. Foco: validar CNPJ, PDI, origem.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1314,10 +1393,10 @@
                     <div class="category-number">03</div>
                     <h3>Reemissão / Cancelada</h3>
                     <div class="card-status-bar" id="status-reemissao">
-                        <span class="status-badge processing"><span class="badge-dot"></span>2</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>4</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>38</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 2</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 4</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 38</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 0</span>
                     </div>
                     <p class="category-description">Reemitir DC-e após cancelamento ou com novo destino. Foco: novo destino, reemitir.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1328,10 +1407,10 @@
                     <div class="category-number">04</div>
                     <h3>VE Leves / LVE</h3>
                     <div class="card-status-bar" id="status-leves">
-                        <span class="status-badge processing"><span class="badge-dot"></span>5</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>3</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>14</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 5</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 3</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 14</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 0</span>
                     </div>
                     <p class="category-description">Classificar por linha veicular específica (VE Leves, Locavia). Aplicar limites e SLA.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1342,10 +1421,10 @@
                     <div class="category-number">05</div>
                     <h3>Cancelamento / SLA</h3>
                     <div class="card-status-bar" id="status-cancelamento">
-                        <span class="status-badge processing"><span class="badge-dot"></span>3</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>1</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>7</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>1</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 3</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 1</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 7</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 1</span>
                     </div>
                     <p class="category-description">Respeitar prazo de cancelamento (24h obrigatorio). Critico: validar SLA.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1356,10 +1435,10 @@
                     <div class="category-number">06</div>
                     <h3>TraaS / Frete / Realocação</h3>
                     <div class="card-status-bar" id="status-traas">
-                        <span class="status-badge processing"><span class="badge-dot"></span>4</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>6</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>12</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>1</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 4</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 6</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 12</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 1</span>
                     </div>
                     <p class="category-description">Gerenciar operação de transporte/frete/realocação. Validar operação associada.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1370,10 +1449,10 @@
                     <div class="category-number">07</div>
                     <h3>Pesados / Caminhões</h3>
                     <div class="card-status-bar" id="status-pesados">
-                        <span class="status-badge processing"><span class="badge-dot"></span>1</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>2</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>5</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 1</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 2</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 5</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 0</span>
                     </div>
                     <p class="category-description">Linha operacional específica de pesados/caminhões. Aplicar validações de linha.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1384,10 +1463,10 @@
                     <div class="category-number">08</div>
                     <h3>Desativação / Não Emissão</h3>
                     <div class="card-status-bar" id="status-desativacao">
-                        <span class="status-badge processing"><span class="badge-dot"></span>0</span>
-                        <span class="status-badge queue"><span class="badge-dot"></span>1</span>
-                        <span class="status-badge done"><span class="badge-dot"></span>4</span>
-                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                        <span class="status-badge processing" title="Processando"><span class="badge-dot"></span>P 0</span>
+                        <span class="status-badge queue" title="Na Fila"><span class="badge-dot"></span>F 1</span>
+                        <span class="status-badge done" title="Concluído"><span class="badge-dot"></span>C 4</span>
+                        <span class="status-badge blocked" title="Bloqueado"><span class="badge-dot"></span>B 0</span>
                     </div>
                     <p class="category-description">Desabilitar fluxo ou bloquear emissao. Bloqueio: validar regra obrigatoria.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
@@ -1572,28 +1651,61 @@
         }
 
         function checkSession() {
+            if (isEmbedded()) {
+                setAuthMsg('Verificando sessão...', 'checking');
+                return fetch(serviceNowBase() + '/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                }).then(function (res) {
+                    if (res.ok) { isAuthenticated = true; updateConnDot(true); setAuthMsg('Conectado.', 'success'); return true; }
+                    isAuthenticated = false; updateConnDot(false); setAuthMsg('Sessão não encontrada.', 'error'); return false;
+                }).catch(function () {
+                    isAuthenticated = false; updateConnDot(false); setAuthMsg('Erro de rede.', 'error'); return false;
+                });
+            }
+            // Modo local: checa /auth/status
             setAuthMsg('Verificando sessão...', 'checking');
-            return fetch(serviceNowBase() + '/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name', {
+            return fetch('/auth/status', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
                 credentials: 'include'
-            }).then(function (res) {
-                if (res.ok) {
+            }).then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.authenticated) {
                     isAuthenticated = true;
                     updateConnDot(true);
-                    setAuthMsg('Conectado ao ServiceNow.', 'success');
+                    setAuthMsg('Conectado como ' + data.user + '.', 'success');
+                    showConnectedState(data.user);
                     return true;
                 }
                 isAuthenticated = false;
                 updateConnDot(false);
-                setAuthMsg('Sessão não encontrada. Faça login e tente novamente.', 'error');
+                setAuthMsg('', '');
+                showFormState();
                 return false;
             }).catch(function () {
-                isAuthenticated = false;
-                updateConnDot(false);
-                setAuthMsg('Não foi possível conectar (CORS ou rede). Faça login e tente novamente.', 'error');
+                isAuthenticated = false; updateConnDot(false);
+                setAuthMsg('Erro ao verificar sessão.', 'error');
+                showFormState();
                 return false;
             });
+        }
+
+        function showConnectedState(user) {
+            var form = document.getElementById('auth-form-area');
+            var conn = document.getElementById('auth-connected-area');
+            var msgOk = document.getElementById('auth-msg-ok');
+            if (form) form.style.display = 'none';
+            if (conn) conn.style.display = '';
+            if (msgOk) msgOk.textContent = 'Conectado como ' + user + '.';
+        }
+
+        function showFormState() {
+            var form = document.getElementById('auth-form-area');
+            var conn = document.getElementById('auth-connected-area');
+            if (form) form.style.display = '';
+            if (conn) conn.style.display = 'none';
         }
 
         function interceptLinks() {
@@ -1609,11 +1721,54 @@
         function bindAuthUI() {
             var loginBtn = document.getElementById('auth-login-btn');
             var checkBtn = document.getElementById('auth-check-btn');
+            var logoutBtn = document.getElementById('auth-logout-btn');
             var overlay = document.getElementById('auth-overlay');
+            var passInput = document.getElementById('auth-pass');
 
             if (loginBtn) {
                 loginBtn.addEventListener('click', function () {
-                    window.open(serviceNowBase() + '/login.do', '_blank', 'noopener');
+                    if (isEmbedded()) {
+                        window.open(serviceNowBase() + '/login.do', '_blank', 'noopener');
+                        return;
+                    }
+                    var user = (document.getElementById('auth-user') || {}).value || '';
+                    var pass = (document.getElementById('auth-pass') || {}).value || '';
+                    if (!user.trim() || !pass) {
+                        setAuthMsg('Informe usuário e senha.', 'error');
+                        return;
+                    }
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'Conectando...';
+                    setAuthMsg('Validando credenciais...', 'checking');
+                    fetch('/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ username: user.trim(), password: pass })
+                    }).then(function (r) { return r.json(); })
+                      .then(function (data) {
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Conectar';
+                        if (data.ok) {
+                            isAuthenticated = true;
+                            updateConnDot(true);
+                            setAuthMsg('Conectado como ' + data.user + '.', 'success');
+                            showConnectedState(data.user);
+                            setTimeout(hideAuthPanel, 800);
+                            loadLiveData();
+                        } else {
+                            setAuthMsg(data.error || 'Falha na autenticação.', 'error');
+                        }
+                    }).catch(function () {
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Conectar';
+                        setAuthMsg('Erro de rede ao tentar login.', 'error');
+                    });
+                });
+            }
+            if (passInput) {
+                passInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && loginBtn) loginBtn.click();
                 });
             }
             if (checkBtn) {
@@ -1626,16 +1781,33 @@
                     });
                 });
             }
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function () {
+                    fetch('/auth/logout', { method: 'POST', credentials: 'include' })
+                        .then(function () {
+                            isAuthenticated = false;
+                            updateConnDot(false);
+                            showFormState();
+                            setAuthMsg('Desconectado.', 'checking');
+                        });
+                });
+            }
             if (overlay) {
                 overlay.addEventListener('click', hideAuthPanel);
             }
         }
 
+        function isEmbedded() {
+            return window.location && /service-now\.com$/i.test(window.location.hostname);
+        }
+
         function serviceNowBase() {
-            if (window.location && /service-now\.com$/i.test(window.location.hostname)) {
-                return window.location.origin;
-            }
-            return CFG.fallbackInstance;
+            if (isEmbedded()) return window.location.origin;
+            return '';  // proxy local: requests vão para /proxy/
+        }
+
+        function proxyPrefix() {
+            return isEmbedded() ? '' : '/proxy';
         }
 
         function normalizeText(value) {
@@ -1725,7 +1897,7 @@
         }
 
         function apiUrl(offset) {
-            return serviceNowBase() + '/api/now/table/' + CFG.table +
+            return serviceNowBase() + proxyPrefix() + '/api/now/table/' + CFG.table +
                 '?sysparm_query=' + encodeURIComponent(CFG.baseQuery) +
                 '&sysparm_fields=' + encodeURIComponent(CFG.fieldList) +
                 '&sysparm_limit=' + CFG.pageSize +
@@ -1875,10 +2047,300 @@
                 });
         }
 
+        /* ============================================
+           FILTROS INTERATIVOS → GRAFICOS
+           ============================================ */
+        var TOTAL_BASE = 245;
+
+        var ALL_CHIPS = {
+            anchor: [
+                {id:'chip-dce',        name:'dce',                              count:245, color:'#0066cc'},
+                {id:'chip-dc-e',       name:'dc-e',                             count:210, color:'#0066cc'},
+                {id:'chip-dc-space',   name:'dc e',                             count:98,  color:'#0066cc'},
+                {id:'chip-decl',       name:'declaração de conteúdo',           count:67,  color:'#0066cc'},
+                {id:'chip-decl-elet',  name:'declaração de conteúdo eletrônica',count:34,  color:'#0066cc'}
+            ],
+            intention: [
+                {id:'chip-ativacao',   name:'Ativação',   count:120, color:'#0066cc'},
+                {id:'chip-emissao',    name:'Emissão',    count:89,  color:'#1a73e8'},
+                {id:'chip-gerar',      name:'Gerar',      count:45,  color:'#4285f4'},
+                {id:'chip-cancelada',  name:'Cancelada',  count:44,  color:'#FF5722'},
+                {id:'chip-reemissao',  name:'Reemissão',  count:12,  color:'#e65100'},
+                {id:'chip-desativacao',name:'Desativação',count:8,   color:'#757575'}
+            ],
+            context: [
+                {id:'chip-cnpj',    name:'CNPJ',      count:67, color:'#FF9800'},
+                {id:'chip-pdi',     name:'PDI',       count:45, color:'#ef6c00'},
+                {id:'chip-lve',     name:'LVE',       count:34, color:'#9C27B0'},
+                {id:'chip-traas',   name:'TraaS',     count:23, color:'#00BCD4'},
+                {id:'chip-pesados', name:'Pesados',   count:8,  color:'#3F51B5'},
+                {id:'chip-valor',   name:'Valor/100k',count:21, color:'#4CAF50'}
+            ],
+            complement: [
+                {id:'chip-tributario',  name:'tributário',  count:34, color:'#757575'},
+                {id:'chip-contingencia',name:'contingência',count:21, color:'#757575'},
+                {id:'chip-hml',         name:'HML',         count:12, color:'#757575'},
+                {id:'chip-xml',         name:'XML',         count:8,  color:'#757575'},
+                {id:'chip-sla',         name:'SLA 24h',     count:18, color:'#757575'}
+            ]
+        };
+
+        function getActiveChips(layer) {
+            var all = ALL_CHIPS[layer] || [];
+            var active = [];
+            all.forEach(function (item) {
+                var el = document.getElementById(item.id);
+                if (el && el.checked) active.push(item);
+            });
+            return active.length > 0 ? active : all;
+        }
+
+        function hasAnySelected(layer) {
+            var all = ALL_CHIPS[layer] || [];
+            return all.some(function (item) {
+                var el = document.getElementById(item.id);
+                return el && el.checked;
+            });
+        }
+
+        function buildSankey() {
+            var container = document.getElementById('sankey-container');
+            if (!container) return;
+
+            var intItems = getActiveChips('intention');
+            var ctxItems = getActiveChips('context');
+            var intFiltered = hasAnySelected('intention');
+            var ctxFiltered = hasAnySelected('context');
+
+            var W = 880, H = 340, PAD = 25;
+            var nodeW = 120;
+            var colX = [PAD, (W - nodeW) / 2, W - PAD - nodeW];
+            var areaTop = PAD + 15, areaBot = H - PAD - 22;
+            var usableH = areaBot - areaTop;
+
+            function layoutNodes(items, x) {
+                var total = items.reduce(function (s, i) { return s + i.count; }, 0);
+                var gap = items.length > 1 ? 5 : 0;
+                var totalGap = gap * Math.max(0, items.length - 1);
+                var availH = usableH - totalGap;
+                var y = areaTop;
+                return items.map(function (item) {
+                    var h = Math.max(24, (item.count / Math.max(total, 1)) * availH);
+                    var node = {x:x, y:y, w:nodeW, h:h, name:item.name, count:item.count, color:item.color, chipId:item.id||'', midY:y+h/2};
+                    y += h + gap;
+                    return node;
+                });
+            }
+
+            var col1 = layoutNodes([{name:'DC-e', count:TOTAL_BASE, color:'#0066cc', id:''}], colX[0]);
+            var col2 = layoutNodes(intItems, colX[1]);
+            var col3 = layoutNodes(ctxItems, colX[2]);
+
+            var svg = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+
+            // Flows col1 → col2
+            var aR = col1[0].x + col1[0].w, aMY = col1[0].midY;
+            col2.forEach(function (n) {
+                var x2 = n.x, y2 = n.midY;
+                var cp = (x2 - aR) * 0.42;
+                var thick = Math.max(2, (n.count / TOTAL_BASE) * col1[0].h * 0.75);
+                svg += '<path d="M'+aR+' '+aMY+' C'+(aR+cp)+' '+aMY+' '+(x2-cp)+' '+y2+' '+x2+' '+y2+'" stroke="'+n.color+'" stroke-width="'+thick.toFixed(1)+'" fill="none" opacity="'+(intFiltered?'0.3':'0.18')+'"/>';
+            });
+
+            // Flows col2 → col3
+            var intTotal = intItems.reduce(function (s, i) { return s + i.count; }, 0);
+            col2.forEach(function (n2) {
+                col3.forEach(function (n3) {
+                    var w = (n2.count / Math.max(intTotal, 1)) * n3.count;
+                    var thick = Math.max(1, (w / Math.max(intTotal, 1)) * usableH * 0.22);
+                    thick = Math.min(thick, 8);
+                    var x1 = n2.x + n2.w, y1 = n2.midY, x2 = n3.x, y2 = n3.midY;
+                    var cp = (x2 - x1) * 0.42;
+                    svg += '<path d="M'+x1+' '+y1+' C'+(x1+cp)+' '+y1+' '+(x2-cp)+' '+y2+' '+x2+' '+y2+'" stroke="'+n3.color+'" stroke-width="'+thick.toFixed(1)+'" fill="none" opacity="0.14"/>';
+                });
+            });
+
+            // Draw nodes
+            function drawCol(nodes, filtered) {
+                var r = '';
+                nodes.forEach(function (n) {
+                    var op = filtered ? '0.14' : '0.08';
+                    r += '<rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'" rx="8" fill="'+n.color+'" opacity="'+op+'" stroke="'+n.color+'" stroke-width="2"'+(n.chipId?' data-chip-id="'+n.chipId+'"':'')+'/>';
+                    r += '<text x="'+(n.x+n.w/2)+'" y="'+(n.midY+6)+'" text-anchor="middle" font-size="1.15rem" font-weight="700" fill="'+n.color+'">'+n.count+'</text>';
+                    if (n.h > 30) {
+                        r += '<text x="'+(n.x+n.w/2)+'" y="'+(n.midY+22)+'" text-anchor="middle" font-size="0.65rem" fill="'+n.color+'" opacity="0.85">'+n.name+'</text>';
+                    }
+                });
+                return r;
+            }
+
+            svg += drawCol(col1, true);
+            svg += drawCol(col2, intFiltered);
+            svg += drawCol(col3, ctxFiltered);
+
+            // Column labels
+            svg += '<text x="'+(colX[0]+nodeW/2)+'" y="'+(H-3)+'" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Âncora</text>';
+            svg += '<text x="'+(colX[1]+nodeW/2)+'" y="'+(H-3)+'" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Intenção</text>';
+            svg += '<text x="'+(colX[2]+nodeW/2)+'" y="'+(H-3)+'" text-anchor="middle" font-size="0.85rem" font-weight="600" fill="#212121">Contexto</text>';
+
+            svg += '</svg>';
+            container.innerHTML = svg;
+        }
+
+        function buildRings(filteredTotal) {
+            var container = document.getElementById('rings-container');
+            if (!container) return;
+
+            var total = filteredTotal || TOTAL_BASE;
+            var successPct = 77, failPct = 5, pendPct = 18;
+            var CIRCUM = 314.16;
+
+            var rings = [
+                {value: total, label: 'Total', color: '#0066cc', pct: 100},
+                {value: successPct + '%', label: 'Sucesso', color: '#4CAF50', pct: successPct},
+                {value: failPct + '%', label: 'Falha', color: '#F44336', pct: failPct},
+                {value: pendPct + '%', label: 'Pendente', color: '#FF9800', pct: pendPct}
+            ];
+
+            var html = '';
+            rings.forEach(function (ring) {
+                var offset = CIRCUM * (1 - ring.pct / 100);
+                html += '<div class="ring-item" title="'+ring.label+': '+ring.value+'">';
+                html += '<svg viewBox="0 0 120 120" width="120" height="120">';
+                html += '<circle cx="60" cy="60" r="50" fill="none" stroke="#e0e0e0" stroke-width="8"/>';
+                html += '<circle cx="60" cy="60" r="50" fill="none" stroke="'+ring.color+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+CIRCUM.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.8s ease-in-out"/>';
+                html += '<text x="60" y="56" text-anchor="middle" font-size="22" font-weight="700" fill="'+ring.color+'">'+ring.value+'</text>';
+                html += '<text x="60" y="74" text-anchor="middle" font-size="9" font-weight="600" fill="#666">'+ring.label+'</text>';
+                html += '</svg>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateFilterSummary(filteredTotal) {
+            var el = document.getElementById('summary-count');
+            var bar = document.getElementById('filter-summary');
+            if (el) el.textContent = filteredTotal;
+            if (bar) {
+                bar.style.background = filteredTotal < TOTAL_BASE
+                    ? 'linear-gradient(135deg, #193c78 0%, #0066cc 100%)'
+                    : 'linear-gradient(135deg, #0066cc 0%, #004a99 100%)';
+            }
+        }
+
+        function cascadeFilters() {
+            var anchSel = hasAnySelected('anchor');
+            var intSel  = hasAnySelected('intention');
+            var ctxSel  = hasAnySelected('context');
+
+            var layerEls = {
+                intention: document.querySelector('.filter-layer.intention'),
+                context:   document.querySelector('.filter-layer.context'),
+                complement: document.querySelector('.filter-layer.complement')
+            };
+
+            // Visual "narrowed" indicator when upstream layer is active
+            if (layerEls.intention)  layerEls.intention.classList.toggle('layer-narrowed',  anchSel);
+            if (layerEls.context)    layerEls.context.classList.toggle('layer-narrowed',    anchSel || intSel);
+            if (layerEls.complement) layerEls.complement.classList.toggle('layer-narrowed', anchSel || intSel || ctxSel);
+        }
+
+        function updateVisuals() {
+            // Anchor: use the largest selected anchor count as the effective base
+            var anchorBase = TOTAL_BASE;
+            if (hasAnySelected('anchor')) {
+                var anchorItems = getActiveChips('anchor');
+                anchorBase = anchorItems.reduce(function (mx, i) { return Math.max(mx, i.count); }, 0);
+            }
+
+            // Intention: further narrow the base
+            var intItems = getActiveChips('intention');
+            var intTotal = intItems.reduce(function (s, i) { return s + i.count; }, 0);
+            var effective = hasAnySelected('intention') ? Math.min(anchorBase, intTotal) : anchorBase;
+
+            cascadeFilters();
+            buildSankey();
+            buildRings(effective);
+            updateFilterSummary(effective);
+        }
+
+        function bindChipFilters() {
+            document.querySelectorAll('.chip-toggle').forEach(function (chip) {
+                chip.addEventListener('change', updateVisuals);
+            });
+
+            // Botão Limpar Filtros
+            var clearBtn = document.getElementById('btn-clear-filters');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    document.querySelectorAll('.chip-toggle').forEach(function (chip) {
+                        // Âncora volta para checked; demais voltam para unchecked
+                        chip.checked = (chip.getAttribute('data-layer') === 'anchor');
+                    });
+                    updateVisuals();
+                });
+            }
+
+            // Sankey node click → toggle corresponding chip
+            document.addEventListener('click', function (e) {
+                var rect = e.target.closest('[data-chip-id]');
+                if (!rect) return;
+                var chipId = rect.getAttribute('data-chip-id');
+                var chip = document.getElementById(chipId);
+                if (!chip) return;
+                chip.checked = !chip.checked;
+                var details = chip.closest('details');
+                if (details && !details.open) details.open = true;
+                updateVisuals();
+            });
+        }
+
+        function fetchSharePointScenarios() {
+            var spStatus  = document.getElementById('sp-status');
+            var totalEl   = document.getElementById('sp-total');
+            var activeEl  = document.getElementById('sp-active');
+            var doneEl    = document.getElementById('sp-done');
+
+            var listUrl = '/proxy-sp/_api/web/lists' +
+                '/getByTitle(\'Plano DCE  Cenrios V2\')/items' +
+                '?$select=Title,Status,Estado,Situacao&$top=5000';
+
+            fetch(listUrl, {
+                headers: { 'Accept': 'application/json;odata=nometadata' }
+            }).then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            }).then(function (data) {
+                var items = data.value || [];
+                var active = items.filter(function (i) {
+                    var s = (i.Status || i.Estado || i.Situacao || '').toLowerCase();
+                    return s === 'ativo' || s === 'em andamento' || s === 'active' || s === 'in progress';
+                }).length;
+                var done = items.filter(function (i) {
+                    var s = (i.Status || i.Estado || i.Situacao || '').toLowerCase();
+                    return s === 'concluído' || s === 'concluido' || s === 'done' || s === 'completed' || s === 'finalizado';
+                }).length;
+
+                if (totalEl)  totalEl.textContent  = items.length;
+                if (activeEl) activeEl.textContent = active;
+                if (doneEl)   doneEl.textContent   = done;
+                if (spStatus) { spStatus.textContent = '● online'; spStatus.className = 'sp-status sp-online'; }
+            }).catch(function () {
+                if (totalEl)  totalEl.textContent  = '—';
+                if (activeEl) activeEl.textContent = '—';
+                if (doneEl)   doneEl.textContent   = '—';
+                if (spStatus) { spStatus.textContent = '⚠ indisponível'; spStatus.className = 'sp-status sp-offline'; }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             restoreStaticState('Modo inicial');
             bindAuthUI();
             interceptLinks();
+            bindChipFilters();
+            updateVisuals();
+            fetchSharePointScenarios();
 
             checkSession().then(function (ok) {
                 if (ok) {

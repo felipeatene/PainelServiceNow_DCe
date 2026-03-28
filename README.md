@@ -24,6 +24,8 @@ O painel é uma interface **HTML responsiva, acessível e sem dependências exte
 | Arquivo | Tamanho | Propósito |
 |---------|---------|----------|
 | **painel-triagem-dce.html** ⭐ | 1.1 KB | **Painel pronto para produção — colar no ServiceNow Rich Text** |
+| **server.py** | ~4 KB | Servidor local Python com proxy CORS para ServiceNow |
+| **run.bat** | 0.1 KB | Script de conveniência para iniciar o servidor |
 | **INDICE_ENTREGA.md** | 4 KB | Mapa completo de entrega e como fazer go-live |
 | **taxonomy.json** | 1.2 KB | Dicionário de palavras-chave e regras de classificação |
 | **decision-matrix.md** | 700 lines | Fluxo de decisão operacional com 10 exemplos |
@@ -32,19 +34,22 @@ O painel é uma interface **HTML responsiva, acessível e sem dependências exte
 | **guia-operacional.md** | 800 lines | Manual prático para analistas e auditores |
 | **plano-validacao.md** | 900 lines | Checklist de validação pré-go-live |
 
-**Total:** 8 arquivos, ~7.5 KB de especificação técnica pronta para usar
-
 ---
 
 ## 🚀 Início Rápido (3 Passos)
 
 ### 1️⃣ Abrir o Painel
 
+**Opção A — Dentro do ServiceNow (produção):**
+Cole o conteúdo de `painel-triagem-dce.html` em um Rich Text widget.
+
+**Opção B — Localmente via servidor (desenvolvimento):**
+```bash
+# Requer Python 3.7+
+python server.py
+# Acesse http://localhost:8080/painel-triagem-dce.html
 ```
-Passo 1: Abra p:\Projetos\DC-e\painel-triagem-dce.html em um navegador
-Passo 2: Veja a interface responsiva, interativa, com gráficos e alertas
-Passo 3: Teste navegação: clique em filtros, scroll em gráficos
-```
+Ou use `run.bat` (Windows). Veja a seção [Como Executar Localmente](#-como-executar-localmente) para detalhes.
 
 ### 2️⃣ Entender as Regras
 
@@ -69,7 +74,60 @@ DEPOIS: Treinar equipe (1h) + monitorar 1ª semana
 
 ---
 
-## 📖 Documentação por Público
+## �️ Como Executar Localmente
+
+O painel precisa ser servido via HTTP (não `file:///`) para que as chamadas à API do ServiceNow funcionem. O `server.py` resolve isso com um proxy reverso que elimina erros de CORS.
+
+### Pré-requisitos
+
+- **Python 3.7+** (sem dependências externas)
+
+### Iniciar o Servidor
+
+```bash
+python server.py
+```
+
+Ou no Windows, dê duplo-clique em `run.bat`.
+
+O servidor inicia na porta **8080**:
+- **Painel:** http://localhost:8080/painel-triagem-dce.html
+- **Proxy:** Requisições a `/proxy/*` são redirecionadas para `ibmlocaliza.service-now.com`
+
+### Fluxo de Login
+
+1. Abra o painel no navegador
+2. Clique em **"Fazer login no ServiceNow"** — abre a página de SSO em nova aba
+3. Faça login normalmente no ServiceNow
+4. Volte ao painel e clique **"Tentar novamente"** — os cookies de sessão são repassados pelo proxy
+
+### Acesso Externo via Ngrok
+
+Para compartilhar o painel com colegas ou testar de outro dispositivo:
+
+```bash
+# 1. Instale o ngrok (https://ngrok.com/download)
+# 2. Inicie o servidor local
+python server.py
+
+# 3. Em outro terminal, exponha a porta
+ngrok http 8080
+```
+
+O Ngrok gera uma URL pública (ex: `https://abc123.ngrok-free.app`). Compartilhe com quem precisar acessar.
+
+> **Nota:** Adicione a URL do Ngrok em `ALLOWED_ORIGINS` no `server.py` para que o CORS funcione corretamente.
+
+### Produção Futura (Azure)
+
+Para acesso externo permanente, o painel pode ser hospedado como:
+- **Azure Static Web App** — serve o HTML estático
+- **Azure Functions** — proxy CORS para a API do ServiceNow
+- **Autenticação:** Azure AD / Entra ID para controle de acesso
+
+---
+
+## �📖 Documentação por Público
 
 ### Para **Analistas de Triagem**
 → Leia: **guia-operacional.md**
