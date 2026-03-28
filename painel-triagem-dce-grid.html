@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel DC-e em Grid</title>
+    <style>
+        :root {
+            --bg: #f4f6f3;
+            --surface: #ffffff;
+            --surface-alt: #ececec;
+            --header: #888888;
+            --brand: #1f8c43;
+            --brand-dark: #146530;
+            --text: #242424;
+            --muted: #767676;
+            --border: #cfcfcf;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+            --status-nao: #8f8f8f;
+            --status-tratamento: #2c96e2;
+            --status-finalizado: #8ed03d;
+            --status-atencao: #f2c233;
+            --trend-up: #188a2b;
+            --trend-down: #c40000;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            padding-bottom: 54px;
+        }
+
+        .page {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 18px 20px 24px;
+        }
+
+        .topbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+
+        .brand-area {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        .brand-mark {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            background: linear-gradient(155deg, var(--brand) 0%, var(--brand-dark) 100%);
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .brand-mark::before {
+            content: "";
+            position: absolute;
+            left: 16px;
+            top: 10px;
+            width: 18px;
+            height: 52px;
+            background: #fff;
+            clip-path: polygon(0 20%, 100% 0, 100% 35%, 35% 50%, 35% 100%, 0 100%);
+            opacity: 0.95;
+        }
+
+        .brand-copy {
+            min-width: 0;
+        }
+
+        .brand-title-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .brand-title-row::before {
+            content: "";
+            width: 2px;
+            height: 36px;
+            background: #7ed14d;
+        }
+
+        .brand-title {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0d6c30;
+            letter-spacing: -0.02em;
+        }
+
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .metric {
+            min-width: 150px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #31974f 0%, #288845 100%);
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(31, 140, 67, 0.18);
+        }
+
+        .metric-label {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.92;
+        }
+
+        .metric-value {
+            font-size: 1.65rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .legend {
+            min-width: 320px;
+            padding-top: 2px;
+            justify-self: end;
+        }
+
+        .legend-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 26px;
+        }
+
+        .legend-group-title {
+            margin: 0 0 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .legend-group-title.tendencia {
+            color: #2b7e39;
+        }
+
+        .legend-group-title.status {
+            color: #595959;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 9px;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+        }
+
+        .arrow.up {
+            border-bottom: 14px solid var(--trend-up);
+        }
+
+        .arrow.down {
+            border-top: 14px solid var(--trend-down);
+        }
+
+        .status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-nao {
+            background: var(--status-nao);
+        }
+
+        .status-tratamento {
+            background: var(--status-tratamento);
+        }
+
+        .status-finalizado {
+            background: var(--status-finalizado);
+        }
+
+        .status-atencao {
+            background: var(--status-atencao);
+        }
+
+        .summary-bar {
+            margin-bottom: 14px;
+            min-height: 74px;
+            padding: 14px 18px;
+            border: 1px solid #bfd8be;
+            background: #edf5ec;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(26, 101, 44, 0.05);
+        }
+
+        .summary-bar p {
+            margin: 0;
+            color: #3d5d3f;
+            font-size: 0.98rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
+
+        .card-header {
+            background: var(--header);
+            color: #fff;
+            padding: 8px 12px 12px;
+            min-height: 72px;
+        }
+
+        .card-title-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .card-trend {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+            padding-top: 2px;
+        }
+
+        .card-trend.positiva {
+            color: #d7ffd2;
+        }
+
+        .card-trend.negativa {
+            color: #ffd5d5;
+        }
+
+        .card-title-wrap {
+            min-width: 0;
+        }
+
+        .card-kicker {
+            margin: 0 0 3px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 0.88rem;
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        .card-title strong {
+            display: block;
+            font-size: 0.98rem;
+            margin-top: 2px;
+        }
+
+        .card-body {
+            padding: 4px 12px 0;
+            flex: 1;
+            background: #fff;
+        }
+
+        .section-title {
+            margin: 0 0 4px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .item-list {
+            margin: 0 0 12px;
+            padding-left: 18px;
+            font-size: 0.9rem;
+        }
+
+        .item-list li {
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .item-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .meta-strip,
+        .update-strip {
+            background: #b4b4b4;
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 0.82rem;
+        }
+
+        .meta-strip {
+            border-top: 1px solid var(--border);
+            display: grid;
+            gap: 4px;
+        }
+
+        .meta-strip strong {
+            font-weight: 700;
+        }
+
+        .update-strip {
+            border-top: 1px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .card-actions {
+            padding: 0 12px 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            border: 0;
+            border-radius: 6px;
+            padding: 7px 12px;
+            background: var(--brand);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            background: var(--brand-dark);
+        }
+
+        .action-btn.secondary {
+            background: #5f5f5f;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 12px;
+            pointer-events: none;
+        }
+
+        .footer-box,
+        .refresh-box {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            color: #6d6d6d;
+            font-size: 0.8rem;
+        }
+
+        .footer-box {
+            padding: 7px 14px;
+        }
+
+        .refresh-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+        }
+
+        .refresh-box select {
+            border: 1px solid #d3d3d3;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font: inherit;
+        }
+
+        /* ---- Auth slide-in ---- */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease;
+        }
+
+        .auth-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .auth-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: min(400px, 90vw);
+            height: 100%;
+            background: #fff;
+            box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18);
+            z-index: 51;
+            display: flex;
+            flex-direction: column;
+            transition: right .35s ease;
+        }
+
+        .auth-panel.active {
+            right: 0;
+        }
+
+        .auth-header {
+            padding: 24px 20px 16px;
+            background: linear-gradient(155deg, var(--brand) 0%, var(--brand-dark) 100%);
+            color: #fff;
+        }
+
+        .auth-header h2 {
+            margin: 0 0 6px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .auth-header p {
+            margin: 0;
+            font-size: 0.88rem;
+            opacity: 0.9;
+        }
+
+        .auth-body {
+            flex: 1;
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-body p {
+            margin: 0;
+            font-size: 0.92rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .auth-btn.primary {
+            background: var(--brand);
+            color: #fff;
+        }
+
+        .auth-btn.primary:hover {
+            background: var(--brand-dark);
+        }
+
+        .auth-btn.secondary {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .auth-btn.secondary:hover {
+            background: #d5d5d5;
+        }
+
+        .auth-status-msg {
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .auth-status-msg.error {
+            display: block;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .auth-status-msg.checking {
+            display: block;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .auth-status-msg.success {
+            display: block;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .auth-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #e5e5e5;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Connection dot */
+        .conn-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .conn-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+        }
+
+        .conn-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 10;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-panel {
+            width: min(780px, 100%);
+            max-height: 85vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 16px 18px;
+            background: var(--brand);
+            color: #fff;
+        }
+
+        .modal-head h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .modal-close {
+            border: 0;
+            background: transparent;
+            color: #fff;
+            font-size: 1.7rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 18px;
+        }
+
+        .modal-body h4 {
+            margin: 0 0 10px;
+            color: var(--brand);
+            font-size: 0.95rem;
+        }
+
+        .modal-body ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .modal-body li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .empty {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        @media (max-width: 1060px) {
+            .topbar {
+                grid-template-columns: 1fr;
+            }
+
+            .legend {
+                justify-self: start;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .legend-top {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                padding: 14px 14px 18px;
+            }
+
+            .brand-area {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .brand-title {
+                font-size: 1.6rem;
+            }
+
+            .metrics {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .metric {
+                min-width: 0;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            body {
+                padding-bottom: 96px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="topbar">
+            <div class="brand-area">
+                <div class="brand-mark" aria-hidden="true"></div>
+                <div class="brand-copy">
+                    <div class="brand-title-row">
+                        <h1 class="brand-title">Plano DC-e</h1>
+                    </div>
+                    <div id="metrics" class="metrics" aria-label="Resumo do painel"></div>
+                </div>
+            </div>
+            <aside class="legend" aria-label="Legenda de tendência e status">
+                <div class="legend-top">
+                    <div>
+                        <p class="legend-group-title tendencia">Tendência</p>
+                        <div class="legend-item"><span class="arrow up" aria-hidden="true"></span> Tendência Positiva</div>
+                        <div class="legend-item"><span class="arrow down" aria-hidden="true"></span> Tendência Negativa</div>
+                    </div>
+                    <div>
+                        <p class="legend-group-title status">Status</p>
+                        <div class="legend-item"><span class="status-dot status-nao" aria-hidden="true"></span> Não retomado</div>
+                        <div class="legend-item"><span class="status-dot status-tratamento" aria-hidden="true"></span> Em tratamento</div>
+                        <div class="legend-item"><span class="status-dot status-finalizado" aria-hidden="true"></span> Finalizado</div>
+                        <div class="legend-item"><span class="status-dot status-atencao" aria-hidden="true"></span> Ponto de atenção</div>
+                    </div>
+                </div>
+            </aside>
+        </header>
+
+        <section class="summary-bar" aria-label="Resumo operacional">
+            <p id="summary-text">Carregando visão operacional da triagem DC-e...</p>
+        </section>
+
+        <main>
+            <div id="grid" class="grid" aria-live="polite"></div>
+        </main>
+    </div>
+
+    <div class="footer">
+        <div class="footer-box"><span id="conn-dot" class="conn-dot offline"></span>Classificação da Informação: <strong>INTERNA</strong></div>
+        <div class="refresh-box">
+            <label for="refresh-interval">Atualização</label>
+            <select id="refresh-interval" title="Intervalo de atualização automática">
+                <option value="0">Sem atualizar</option>
+                <option value="30" selected>30s</option>
+                <option value="60">1min</option>
+                <option value="120">2min</option>
+                <option value="300">5min</option>
+            </select>
+            <span id="refresh-countdown">30s</span>
+        </div>
+    </div>
+
+    <!-- Auth slide-in -->
+    <div id="auth-overlay" class="auth-overlay"></div>
+    <aside id="auth-panel" class="auth-panel" role="dialog" aria-modal="true" aria-label="Autenticação ServiceNow">
+        <div class="auth-header">
+            <h2>Autenticação Necessária</h2>
+            <p>Conecte-se ao ServiceNow para carregar dados ao vivo e acessar consultas.</p>
+        </div>
+        <div class="auth-body">
+            <p>O painel precisa de uma sessão ativa no ServiceNow para buscar incidentes e gerar links de consulta.</p>
+            <p>Clique no botão abaixo para abrir a página de login em uma nova aba. Após fazer login, volte aqui e clique em <strong>"Verificar Conexão"</strong>.</p>
+            <div id="auth-msg" class="auth-status-msg"></div>
+            <button id="auth-login-btn" class="auth-btn primary" type="button">Entrar com conta Microsoft</button>
+            <button id="auth-check-btn" class="auth-btn secondary" type="button">Verificar Conexão</button>
+        </div>
+        <div class="auth-footer">
+            A sessão expira conforme política do ServiceNow. O painel verificará automaticamente.
+        </div>
+    </aside>
+
+    <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-panel">
+            <div class="modal-head">
+                <h3 id="modal-title">Detalhes</h3>
+                <button id="modal-close" class="modal-close" type="button" aria-label="Fechar">×</button>
+            </div>
+            <div id="modal-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const PANEL_DATA = {
+            updatedAt: "2026-03-27T12:37:00-03:00",
+            summary: "Painel operacional inicial da triagem DC-e, dividido por base de atendimento e pronto para ser refinado com consultas do ServiceNow.",
+            metrics: {
+                total: 136,
+                finalizados: 111,
+                emTratamento: 24,
+                linkTotal: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce",
+                linkFinalizados: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce^state=6",
+                linkEmTratamento: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce^stateNOT%20IN6,7"
+            },
+            cards: [
+                {
+                    id: "geracao",
+                    status: "finalizado",
+                    trend: "positiva",
+                    kicker: "Geração / SPOC",
+                    title: "Operação de Carta Transporte",
+                    subtitle: "RAC / Fleet - Ativação",
+                    processLabel: "Processos em ativação/ativados",
+                    processes: [
+                        "2.000 DC-es geradas.",
+                        "Baixa do acessório ocorrendo com sucesso.",
+                        "Fluxo de geração estabilizado para RAC e Fleet."
+                    ],
+                    attentionLabel: "Pontos de atenção",
+                    attention: [
+                        "Sem pontos de atenção operacionais no momento."
+                    ],
+                    business: ["Ana Mendes"],
+                    labs: ["Wellington Rodrigues"],
+                    updatedText: "Ativado em: 26/03 | 16h",
+                    link: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce^short_descriptionLIKERAC"
+                },
+                {
+                    id: "traas",
+                    status: "tratamento",
+                    trend: "negativa",
+                    kicker: "TraaS",
+                    title: "RAC / Fleet",
+                    subtitle: "Realocação de Frota, PitStop, Desativação",
+                    processLabel: "Processos em ativação/ativados",
+                    processes: [
+                        "11 DC-es para os processos de Frete 20 Localidades Piloto em validação pelo tributário.",
+                        "Fluxo RAC, SN e Fleet consolidado para realocação e desativação.",
+                        "Acompanhamento aberto para revisão de duplicidades de nota."
+                    ],
+                    attentionLabel: "Pontos de atenção",
+                    attention: [
+                        "Criar CNPJ sem SAP. Status: Total 479 | Sem sigla 172 | Ajustados 21.",
+                        "Ajustar cadastros de/para CNPJ. Status: Total 250 | Ajustados 0.",
+                        "Correção de bug de duplicidade de notas para 11 placas.",
+                        "Contingência: CNPJ Matriz para localidade sem cadastro definitivo."
+                    ],
+                    business: ["Fabio Machado", "Lucas Amaral", "Marcus Vernier", "Larissa Vieira", "Mariana Nunes"],
+                    labs: ["Ingrid Medrado"],
+                    updatedText: "Atualizado: 26/03 | 18h",
+                    link: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce^short_descriptionLIKEfrete"
+                },
+                {
+                    id: "leves",
+                    status: "atencao",
+                    trend: "positiva",
+                    kicker: "Locavia",
+                    title: "VE Leves",
+                    subtitle: "Ativação / Desativação",
+                    processLabel: "Processos em ativação/ativados",
+                    processes: [
+                        "2 DC-es em ativação emitidas.",
+                        "Desativação em correção.",
+                        "Base de leves separada para acompanhamento de LVE e Locavia."
+                    ],
+                    attentionLabel: "Pontos de atenção",
+                    attention: [
+                        "Bloqueio de emissão de novas DC-e no fluxo de desativação até subida da correção em 26/03 às 20h.",
+                        "Contingenciado: criar CNPJ na junta comercial. Total 360 | Criados 24."
+                    ],
+                    business: ["Larissa Vieira", "Flávio Cruz", "Rodrigo Siqueira"],
+                    labs: ["Beatriz Leão"],
+                    updatedText: "Ativado em: 26/03 | 18h",
+                    link: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce^short_descriptionLIKElve"
+                },
+                {
+                    id: "pesados",
+                    status: "tratamento",
+                    trend: "positiva",
+                    kicker: "Pesados / Solução Manual",
+                    title: "Caminhões",
+                    subtitle: "Ativação / Demais frentes / Contingência",
+                    processLabel: "Processos em ativação/ativados",
+                    processes: [
+                        "3 DC-es para Caminhões emitidas em validação.",
+                        "Fluxo manual habilitado para TraaS, LVE e SPOC sem necessidade de acionamento adicional.",
+                        "Base de pesados preparada para expansão com gateway."
+                    ],
+                    attentionLabel: "Pontos de atenção",
+                    attention: [
+                        "Verificar certificado digital e liberação gateway. Total 1.420 | Ajustados 6.",
+                        "Contingência: usar CNPJ Matriz até corrigir o certificado.",
+                        "Acompanhar abertura de chamados ligados a ativação pesados."
+                    ],
+                    business: ["Ingrid Medrado", "Wellington Rodrigues", "Beatriz Leão", "Alexandre Carreiro", "Paolla Cariello"],
+                    labs: ["Gabriel Lessa"],
+                    updatedText: "Ativado: 26/03 | 18h",
+                    link: "https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=123TEXTQUERY321=dce^short_descriptionLIKEcaminh"
+                }
+            ]
+        };
+
+        const STATUS_CLASS = {
+            nao: "status-nao",
+            tratamento: "status-tratamento",
+            finalizado: "status-finalizado",
+            atencao: "status-atencao"
+        };
+
+        /* ---- Auth logic ---- */
+        const SN_BASE = "https://ibmlocaliza.service-now.com";
+        let isAuthenticated = false;
+
+        const authOverlay = document.getElementById("auth-overlay");
+        const authPanel = document.getElementById("auth-panel");
+        const authMsg = document.getElementById("auth-msg");
+        const connDot = document.getElementById("conn-dot");
+
+        function setAuthMsg(text, type) {
+            authMsg.textContent = text;
+            authMsg.className = "auth-status-msg " + type;
+        }
+
+        function showAuthPanel() {
+            authOverlay.classList.add("active");
+            authPanel.classList.add("active");
+        }
+
+        function hideAuthPanel() {
+            authOverlay.classList.remove("active");
+            authPanel.classList.remove("active");
+        }
+
+        function updateConnDot(online) {
+            connDot.className = "conn-dot " + (online ? "online" : "offline");
+        }
+
+        function checkSession() {
+            setAuthMsg("Verificando sessão...", "checking");
+            return fetch(SN_BASE + "/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name", {
+                method: "GET",
+                headers: { "Accept": "application/json" },
+                credentials: "include"
+            }).then(function (res) {
+                if (res.ok) {
+                    isAuthenticated = true;
+                    updateConnDot(true);
+                    setAuthMsg("Conectado ao ServiceNow.", "success");
+                    return true;
+                }
+                isAuthenticated = false;
+                updateConnDot(false);
+                setAuthMsg("Sessão não encontrada. Faça login e tente novamente.", "error");
+                return false;
+            }).catch(function () {
+                isAuthenticated = false;
+                updateConnDot(false);
+                setAuthMsg("Não foi possível conectar (CORS ou rede). Faça login e tente novamente.", "error");
+                return false;
+            });
+        }
+
+        function interceptLinks() {
+            document.addEventListener("click", function (e) {
+                var link = e.target.closest("a[href*='service-now.com']");
+                if (!link) return;
+                if (isAuthenticated) return;
+                e.preventDefault();
+                showAuthPanel();
+            });
+        }
+
+        document.getElementById("auth-login-btn").addEventListener("click", function () {
+            window.open(SN_BASE + "/login.do", "_blank", "noopener");
+        });
+
+        document.getElementById("auth-check-btn").addEventListener("click", function () {
+            checkSession().then(function (ok) {
+                if (ok) {
+                    setTimeout(hideAuthPanel, 800);
+                }
+            });
+        });
+
+        authOverlay.addEventListener("click", hideAuthPanel);
+
+        const modal = document.getElementById("modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalBody = document.getElementById("modal-body");
+
+        function formatDateTime(isoDate) {
+            const date = new Date(isoDate);
+            if (Number.isNaN(date.getTime())) {
+                return "--";
+            }
+
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            return `${day}/${month}/${year} | ${hours}:${minutes}`;
+        }
+
+        function buildMetrics() {
+            const metricsRoot = document.getElementById("metrics");
+            const items = [
+                { label: "Total", value: PANEL_DATA.metrics.total, href: PANEL_DATA.metrics.linkTotal },
+                { label: "Finalizado", value: PANEL_DATA.metrics.finalizados, href: PANEL_DATA.metrics.linkFinalizados },
+                { label: "Em tratamento", value: PANEL_DATA.metrics.emTratamento, href: PANEL_DATA.metrics.linkEmTratamento },
+                { label: "Atualização", value: formatDateTime(PANEL_DATA.updatedAt) }
+            ];
+
+            metricsRoot.innerHTML = items.map((item) => {
+                const content = `
+                    <span class="metric-value">${item.value}</span>
+                    <span class="metric-label">${item.label}</span>
+                `;
+
+                if (!item.href) {
+                    return `<div class="metric">${content}</div>`;
+                }
+
+                return `<a class="metric" href="${item.href}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">${content}</a>`;
+            }).join("");
+        }
+
+        function createListHtml(items, cardTitle, sectionTitle) {
+            if (!items || !items.length) {
+                return `<p class="empty">Sem dados.</p>`;
+            }
+
+            const visibleItems = items.slice(0, 3);
+            const list = visibleItems.map((item) => `<li>${item}</li>`).join("");
+            const button = items.length > 3
+                ? `<button class="action-btn secondary" type="button" data-modal-title="${cardTitle}" data-modal-section="${sectionTitle}" data-modal-items='${JSON.stringify(items)}'>Ver mais (${items.length})</button>`
+                : "";
+
+            return `<ul class="item-list">${list}</ul>${button}`;
+        }
+
+        function renderCards() {
+            const root = document.getElementById("grid");
+            root.innerHTML = PANEL_DATA.cards.map((card) => {
+                const statusClass = STATUS_CLASS[card.status] || STATUS_CLASS.nao;
+                const trendArrow = card.trend === "negativa" ? "▼" : "▲";
+                const processesHtml = createListHtml(card.processes, `${card.kicker} - ${card.title}`, card.processLabel);
+                const attentionHtml = createListHtml(card.attention, `${card.kicker} - ${card.title}`, card.attentionLabel);
+
+                return `
+                    <section class="card" aria-labelledby="card-${card.id}">
+                        <div class="card-header">
+                            <div class="card-title-line">
+                                <span class="status-dot ${statusClass}" aria-hidden="true"></span>
+                                <div class="card-title-wrap">
+                                    <p class="card-kicker">${card.kicker}</p>
+                                    <h2 id="card-${card.id}" class="card-title">${card.title}<strong>${card.subtitle}</strong></h2>
+                                </div>
+                                <span class="card-trend ${card.trend}" aria-label="Tendência ${card.trend}">${trendArrow}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="section-title">${card.processLabel}:</p>
+                            ${processesHtml}
+                            <p class="section-title">${card.attentionLabel}:</p>
+                            ${attentionHtml}
+                        </div>
+                        <div class="card-actions">
+                            <a class="action-btn" href="${card.link}" target="_blank" rel="noopener noreferrer">Abrir consulta</a>
+                        </div>
+                        <div class="meta-strip">
+                            <div><strong>Negócio:</strong> ${card.business.join(" / ")}</div>
+                            <div><strong>Labs:</strong> ${card.labs.join(" / ")}</div>
+                        </div>
+                        <div class="update-strip">${card.updatedText}</div>
+                    </section>
+                `;
+            }).join("");
+        }
+
+        function openModal(title, section, items) {
+            modalTitle.textContent = title;
+            const body = items && items.length
+                ? `<h4>${section}</h4><ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
+                : `<p class="empty">Sem detalhes adicionais.</p>`;
+            modalBody.innerHTML = body;
+            modal.classList.add("active");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            modal.classList.remove("active");
+            document.body.style.overflow = "";
+        }
+
+        let refreshIntervalId = null;
+        let countdownIntervalId = null;
+        let nextRefreshAt = Date.now() + 30000;
+
+        function stopRefresh() {
+            if (refreshIntervalId) {
+                clearInterval(refreshIntervalId);
+                refreshIntervalId = null;
+            }
+
+            if (countdownIntervalId) {
+                clearInterval(countdownIntervalId);
+                countdownIntervalId = null;
+            }
+        }
+
+        function updateCountdown() {
+            const select = document.getElementById("refresh-interval");
+            const display = document.getElementById("refresh-countdown");
+            const seconds = Number(select.value);
+
+            if (!seconds) {
+                display.textContent = "Sem atualizar";
+                return;
+            }
+
+            const remaining = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
+            display.textContent = `${remaining}s`;
+        }
+
+        function startRefresh(seconds) {
+            stopRefresh();
+            if (!seconds) {
+                updateCountdown();
+                return;
+            }
+
+            nextRefreshAt = Date.now() + seconds * 1000;
+            countdownIntervalId = window.setInterval(updateCountdown, 1000);
+            refreshIntervalId = window.setInterval(() => {
+                window.location.reload();
+            }, seconds * 1000);
+            updateCountdown();
+        }
+
+        function bindEvents() {
+            document.getElementById("summary-text").textContent = PANEL_DATA.summary;
+
+            document.getElementById("grid").addEventListener("click", (event) => {
+                const button = event.target.closest("[data-modal-items]");
+                if (!button) {
+                    return;
+                }
+
+                const items = JSON.parse(button.getAttribute("data-modal-items"));
+                openModal(button.getAttribute("data-modal-title"), button.getAttribute("data-modal-section"), items);
+            });
+
+            document.getElementById("modal-close").addEventListener("click", closeModal);
+            modal.addEventListener("click", (event) => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape" && modal.classList.contains("active")) {
+                    closeModal();
+                }
+            });
+
+            const select = document.getElementById("refresh-interval");
+            select.addEventListener("change", (event) => {
+                startRefresh(Number(event.target.value));
+            });
+        }
+
+        function init() {
+            buildMetrics();
+            renderCards();
+            bindEvents();
+            interceptLinks();
+            startRefresh(Number(document.getElementById("refresh-interval").value));
+
+            checkSession().then(function (ok) {
+                if (!ok) {
+                    showAuthPanel();
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

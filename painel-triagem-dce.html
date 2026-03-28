@@ -224,82 +224,189 @@
         }
         
         /* ============================================
-           FILTROS POR CAMADA
+           FILTROS POR CAMADA (Accordion)
            ============================================ */
         
         .dce-filters {
             margin-bottom: var(--spacing-xl);
         }
         
-        .dce-filters h2 {
+        .dce-filters > h2 {
             font-size: 1.5rem;
             margin-bottom: var(--spacing-lg);
         }
         
-        .filter-tabs {
+        .filter-accordion {
             display: flex;
+            flex-direction: column;
             gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-lg);
-            border-bottom: 2px solid var(--border);
-            overflow-x: auto;
-            padding-bottom: var(--spacing-md);
         }
         
-        .filter-tab-input {
-            display: none;
-        }
-        
-        .filter-tab-label {
-            padding: var(--spacing-sm) var(--spacing-md);
-            cursor: pointer;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        .filter-tab-label:hover {
-            color: var(--primary);
-        }
-        
-        .filter-tab-input:checked + .filter-tab-label {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-        
-        .filter-content {
-            display: none;
-            padding: var(--spacing-lg);
-            background: var(--bg-light);
-            border-radius: var(--radius-md);
-        }
-        
-        .filter-tab-input:checked + .filter-tab-label + .filter-content {
-            display: block;
-        }
-        
-        .chip {
-            display: inline-block;
-            padding: var(--spacing-xs) var(--spacing-sm);
-            background: var(--bg-white);
+        .filter-layer {
             border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: box-shadow .2s ease;
+        }
+        
+        .filter-layer:hover {
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .filter-layer[open] {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .filter-layer summary {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            user-select: none;
+            list-style: none;
+            transition: background .2s;
+        }
+        
+        .filter-layer summary::-webkit-details-marker { display: none; }
+        
+        .filter-layer summary::before {
+            content: "▶";
+            font-size: 0.7rem;
+            transition: transform .2s;
+            flex-shrink: 0;
+        }
+        
+        .filter-layer[open] summary::before {
+            transform: rotate(90deg);
+        }
+        
+        .filter-layer summary .layer-badge {
+            margin-left: auto;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        /* Cores por camada */
+        .filter-layer.anchor summary { background: rgba(0, 102, 204, 0.06); color: var(--primary); }
+        .filter-layer.anchor summary .layer-badge { background: var(--primary); }
+        .filter-layer.intention summary { background: rgba(25, 60, 120, 0.06); color: #193c78; }
+        .filter-layer.intention summary .layer-badge { background: #193c78; }
+        .filter-layer.context summary { background: rgba(255, 152, 0, 0.06); color: #b36b00; }
+        .filter-layer.context summary .layer-badge { background: var(--warning); }
+        .filter-layer.complement summary { background: rgba(117, 117, 117, 0.06); color: var(--neutral); }
+        .filter-layer.complement summary .layer-badge { background: var(--neutral); }
+        
+        .filter-layer[open].anchor summary { background: var(--primary); color: #fff; }
+        .filter-layer[open].intention summary { background: #193c78; color: #fff; }
+        .filter-layer[open].context summary { background: var(--warning); color: #fff; }
+        .filter-layer[open].complement summary { background: var(--neutral); color: #fff; }
+        
+        .filter-layer-body {
+            padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+            background: var(--bg-light);
+        }
+        
+        .filter-layer-body > p {
+            margin: 0 0 var(--spacing-md);
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+        
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .chip-toggle {
+            display: none;
+        }
+        
+        .chip-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--bg-white);
+            border: 2px dashed var(--border);
             border-radius: 20px;
             font-size: 0.85rem;
-            margin: var(--spacing-xs);
+            cursor: pointer;
+            transition: all .2s;
+            user-select: none;
             color: var(--text-primary);
         }
         
-        .chip[data-type="intention"] {
-            background: rgba(0, 102, 204, 0.1);
+        .chip-label:hover {
+            border-style: solid;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .chip-label .chip-count {
+            font-weight: 700;
+            font-size: 0.78rem;
+            padding: 1px 7px;
+            border-radius: 10px;
+            background: var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .chip-toggle:checked + .chip-label {
+            border-style: solid;
+            font-weight: 600;
+        }
+        
+        .filter-layer.anchor .chip-toggle:checked + .chip-label {
+            background: rgba(0, 102, 204, 0.12);
             border-color: var(--primary);
             color: var(--primary);
         }
+        .filter-layer.anchor .chip-toggle:checked + .chip-label .chip-count {
+            background: var(--primary);
+            color: #fff;
+        }
         
-        .chip[data-type="context"] {
-            background: rgba(255, 152, 0, 0.1);
+        .filter-layer.intention .chip-toggle:checked + .chip-label {
+            background: rgba(25, 60, 120, 0.1);
+            border-color: #193c78;
+            color: #193c78;
+        }
+        .filter-layer.intention .chip-toggle:checked + .chip-label .chip-count {
+            background: #193c78;
+            color: #fff;
+        }
+        
+        .filter-layer.context .chip-toggle:checked + .chip-label {
+            background: rgba(255, 152, 0, 0.12);
             border-color: var(--warning);
-            color: var(--warning);
+            color: #b36b00;
+        }
+        .filter-layer.context .chip-toggle:checked + .chip-label .chip-count {
+            background: var(--warning);
+            color: #fff;
+        }
+        
+        .filter-layer.complement .chip-toggle:checked + .chip-label {
+            background: rgba(117, 117, 117, 0.1);
+            border-color: var(--neutral);
+            color: #444;
+        }
+        .filter-layer.complement .chip-toggle:checked + .chip-label .chip-count {
+            background: var(--neutral);
+            color: #fff;
+        }
+        
+        .filter-hint {
+            margin: var(--spacing-md) 0 0;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            font-style: italic;
         }
         
         /* ============================================
@@ -494,6 +601,58 @@
             transform: translateX(2px);
         }
         
+        /* Status badges dentro dos cards */
+        .card-status-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: var(--spacing-md);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        
+        .status-badge .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .status-badge.processing {
+            background: rgba(76, 175, 80, 0.12);
+            color: #2e7d32;
+        }
+        .status-badge.processing .badge-dot { background: #4CAF50; }
+        
+        .status-badge.queue {
+            background: rgba(255, 152, 0, 0.12);
+            color: #e65100;
+        }
+        .status-badge.queue .badge-dot { background: #FF9800; }
+        
+        .status-badge.done {
+            background: rgba(33, 150, 243, 0.12);
+            color: #0d47a1;
+        }
+        .status-badge.done .badge-dot { background: #2196F3; }
+        
+        .status-badge.blocked {
+            background: rgba(244, 67, 54, 0.12);
+            color: #c62828;
+        }
+        .status-badge.blocked .badge-dot { background: #F44336; }
+        
         /* ============================================
            MATRIZ DE DECISAO
            ============================================ */
@@ -582,8 +741,8 @@
                 grid-template-columns: 1fr;
             }
             
-            .filter-tabs {
-                flex-wrap: wrap;
+            .chip-group {
+                gap: 6px;
             }
         }
         
@@ -597,6 +756,162 @@
             }
         }
         
+        /* ============================================
+           AUTH SLIDE-IN
+           ============================================ */
+
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease;
+        }
+
+        .auth-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .auth-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: min(400px, 90vw);
+            height: 100%;
+            background: #fff;
+            box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18);
+            z-index: 51;
+            display: flex;
+            flex-direction: column;
+            transition: right .35s ease;
+        }
+
+        .auth-panel.active {
+            right: 0;
+        }
+
+        .auth-header-bar {
+            padding: 24px 20px 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, #004a99 100%);
+            color: #fff;
+        }
+
+        .auth-header-bar h2 {
+            margin: 0 0 6px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .auth-header-bar p {
+            margin: 0;
+            font-size: 0.88rem;
+            opacity: 0.9;
+        }
+
+        .auth-body {
+            flex: 1;
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-body p {
+            margin: 0;
+            font-size: 0.92rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .auth-btn.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .auth-btn.primary:hover {
+            background: #004a99;
+        }
+
+        .auth-btn.secondary {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .auth-btn.secondary:hover {
+            background: #d5d5d5;
+        }
+
+        .auth-status-msg {
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .auth-status-msg.error {
+            display: block;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .auth-status-msg.checking {
+            display: block;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .auth-status-msg.success {
+            display: block;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .auth-footer-bar {
+            padding: 14px 20px;
+            border-top: 1px solid #e5e5e5;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .conn-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .conn-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+        }
+
+        .conn-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+        }
+
         /* ============================================
            ACESSIBILIDADE
            ============================================ */
@@ -621,6 +936,25 @@
 </head>
 <body>
     <div class="dce-panel">
+
+        <!-- Auth slide-in -->
+        <div id="auth-overlay" class="auth-overlay"></div>
+        <aside id="auth-panel" class="auth-panel" role="dialog" aria-modal="true" aria-label="Autenticação ServiceNow">
+            <div class="auth-header-bar">
+                <h2>Autenticação Necessária</h2>
+                <p>Conecte-se ao ServiceNow para carregar dados ao vivo e acessar consultas.</p>
+            </div>
+            <div class="auth-body">
+                <p>O painel precisa de uma sessão ativa no ServiceNow para buscar incidentes e gerar links de consulta.</p>
+                <p>Clique no botão abaixo para abrir a página de login em uma nova aba. Após fazer login, volte aqui e clique em <strong>"Verificar Conexão"</strong>.</p>
+                <div id="auth-msg" class="auth-status-msg"></div>
+                <button id="auth-login-btn" class="auth-btn primary" type="button">Entrar com conta Microsoft</button>
+                <button id="auth-check-btn" class="auth-btn secondary" type="button">Verificar Conexão</button>
+            </div>
+            <div class="auth-footer-bar">
+                A sessão expira conforme política do ServiceNow. O painel verificará automaticamente.
+            </div>
+        </aside>
         
         <!-- HEADER -->
         <header class="dce-header">
@@ -666,68 +1000,130 @@
             </div>
         </section>
         
-        <!-- FILTROS POR CAMADA -->
+        <!-- FILTROS POR CAMADA (Accordion + Chips selecionáveis) -->
         <section class="dce-filters">
             <h2>Filtros por Camada</h2>
             
-            <div class="filter-tabs">
-                <input type="radio" id="tab-anchor" name="filter-tab" class="filter-tab-input" checked>
-                <label for="tab-anchor" class="filter-tab-label">Ancora</label>
-                <div class="filter-content">
-                    <p><strong>Palavras-chave encontradas:</strong></p>
-                    <span class="chip" data-type="anchor">dce</span>
-                    <span class="chip" data-type="anchor">dc-e</span>
-                    <span class="chip" data-type="anchor">dc e</span>
-                    <span class="chip" data-type="anchor">declaração de conteúdo</span>
-                    <span class="chip" data-type="anchor">declaração de conteúdo eletrônica</span>
-                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
-                        Todos os 245 itens contem ancora valida de DC-e.
-                    </p>
-                </div>
-                
-                <input type="radio" id="tab-intention" name="filter-tab" class="filter-tab-input">
-                <label for="tab-intention" class="filter-tab-label">Intencao</label>
-                <div class="filter-content">
-                    <p><strong>Distribuição por intenção:</strong></p>
-                    <span class="chip" data-type="intention">ativação (120)</span>
-                    <span class="chip" data-type="intention">emissão (89)</span>
-                    <span class="chip" data-type="intention">gerar (45)</span>
-                    <span class="chip" data-type="intention">cancelada (44)</span>
-                    <span class="chip" data-type="intention">reemissão (12)</span>
-                    <span class="chip" data-type="intention">desativação (8)</span>
-                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
-                        Clicar em uma intenção filtra itens com essa ação.
-                    </p>
-                </div>
-                
-                <input type="radio" id="tab-context" name="filter-tab" class="filter-tab-input">
-                <label for="tab-context" class="filter-tab-label">Contexto</label>
-                <div class="filter-content">
-                    <p><strong>Distribuição por contexto operacional:</strong></p>
-                    <span class="chip" data-type="context">CNPJ (67)</span>
-                    <span class="chip" data-type="context">PDI (45)</span>
-                    <span class="chip" data-type="context">LVE (34)</span>
-                    <span class="chip" data-type="context">TraaS (23)</span>
-                    <span class="chip" data-type="context">Pesados (8)</span>
-                    <span class="chip" data-type="context">Valor/100k (21)</span>
-                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
-                        Contexto refina a classificação quando não há intenção clara.
-                    </p>
-                </div>
-                
-                <input type="radio" id="tab-complement" name="filter-tab" class="filter-tab-input">
-                <label for="tab-complement" class="filter-tab-label">Complemento +</label>
-                <div class="filter-content">
-                    <p><strong>Flags encontradas (enriquecimento):</strong></p>
-                    <span class="chip" data-type="context">tributário (34)</span>
-                    <span class="chip" data-type="context">contingência (21)</span>
-                    <span class="chip" data-type="context">HML (12)</span>
-                    <span class="chip" data-type="context">XML (8)</span>
-                    <span class="chip" data-type="context">SLA 24h (18)</span>
-                    <p style="margin-top: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary);">
-                        Complementos não definem categoria, apenas enriquecem o contexto.
-                    </p>
-                </div>
+            <div class="filter-accordion">
+
+                <!-- Camada 1: Âncora -->
+                <details class="filter-layer anchor" open>
+                    <summary>
+                        <span>Âncora</span>
+                        <span class="layer-badge" id="badge-anchor">5</span>
+                    </summary>
+                    <div class="filter-layer-body">
+                        <p>Palavras-chave que identificam o incidente como DC-e. Todos os itens contêm pelo menos uma âncora.</p>
+                        <div class="chip-group">
+                            <input type="checkbox" id="chip-dce" class="chip-toggle" data-layer="anchor" checked>
+                            <label for="chip-dce" class="chip-label">dce <span class="chip-count">245</span></label>
+                            
+                            <input type="checkbox" id="chip-dc-e" class="chip-toggle" data-layer="anchor" checked>
+                            <label for="chip-dc-e" class="chip-label">dc-e <span class="chip-count">210</span></label>
+                            
+                            <input type="checkbox" id="chip-dc-space" class="chip-toggle" data-layer="anchor" checked>
+                            <label for="chip-dc-space" class="chip-label">dc e <span class="chip-count">98</span></label>
+                            
+                            <input type="checkbox" id="chip-decl" class="chip-toggle" data-layer="anchor" checked>
+                            <label for="chip-decl" class="chip-label">declaração de conteúdo <span class="chip-count">67</span></label>
+                            
+                            <input type="checkbox" id="chip-decl-elet" class="chip-toggle" data-layer="anchor" checked>
+                            <label for="chip-decl-elet" class="chip-label">declaração de conteúdo eletrônica <span class="chip-count">34</span></label>
+                        </div>
+                        <p class="filter-hint">Todos os 245 itens contêm âncora válida de DC-e.</p>
+                    </div>
+                </details>
+
+                <!-- Camada 2: Intenção -->
+                <details class="filter-layer intention">
+                    <summary>
+                        <span>Intenção</span>
+                        <span class="layer-badge" id="badge-intention">6</span>
+                    </summary>
+                    <div class="filter-layer-body">
+                        <p>Distribuição por intenção operacional detectada no texto do incidente.</p>
+                        <div class="chip-group">
+                            <input type="checkbox" id="chip-ativacao" class="chip-toggle" data-layer="intention">
+                            <label for="chip-ativacao" class="chip-label">ativação <span class="chip-count">120</span></label>
+                            
+                            <input type="checkbox" id="chip-emissao" class="chip-toggle" data-layer="intention">
+                            <label for="chip-emissao" class="chip-label">emissão <span class="chip-count">89</span></label>
+                            
+                            <input type="checkbox" id="chip-gerar" class="chip-toggle" data-layer="intention">
+                            <label for="chip-gerar" class="chip-label">gerar <span class="chip-count">45</span></label>
+                            
+                            <input type="checkbox" id="chip-cancelada" class="chip-toggle" data-layer="intention">
+                            <label for="chip-cancelada" class="chip-label">cancelada <span class="chip-count">44</span></label>
+                            
+                            <input type="checkbox" id="chip-reemissao" class="chip-toggle" data-layer="intention">
+                            <label for="chip-reemissao" class="chip-label">reemissão <span class="chip-count">12</span></label>
+
+                            <input type="checkbox" id="chip-desativacao" class="chip-toggle" data-layer="intention">
+                            <label for="chip-desativacao" class="chip-label">desativação <span class="chip-count">8</span></label>
+                        </div>
+                        <p class="filter-hint">Selecione intenções para filtrar itens por ação detectada.</p>
+                    </div>
+                </details>
+
+                <!-- Camada 3: Contexto -->
+                <details class="filter-layer context">
+                    <summary>
+                        <span>Contexto</span>
+                        <span class="layer-badge" id="badge-context">6</span>
+                    </summary>
+                    <div class="filter-layer-body">
+                        <p>Distribuição por contexto operacional. Refina a classificação quando não há intenção clara.</p>
+                        <div class="chip-group">
+                            <input type="checkbox" id="chip-cnpj" class="chip-toggle" data-layer="context">
+                            <label for="chip-cnpj" class="chip-label">CNPJ <span class="chip-count">67</span></label>
+                            
+                            <input type="checkbox" id="chip-pdi" class="chip-toggle" data-layer="context">
+                            <label for="chip-pdi" class="chip-label">PDI <span class="chip-count">45</span></label>
+                            
+                            <input type="checkbox" id="chip-lve" class="chip-toggle" data-layer="context">
+                            <label for="chip-lve" class="chip-label">LVE <span class="chip-count">34</span></label>
+                            
+                            <input type="checkbox" id="chip-traas" class="chip-toggle" data-layer="context">
+                            <label for="chip-traas" class="chip-label">TraaS <span class="chip-count">23</span></label>
+                            
+                            <input type="checkbox" id="chip-pesados" class="chip-toggle" data-layer="context">
+                            <label for="chip-pesados" class="chip-label">Pesados <span class="chip-count">8</span></label>
+
+                            <input type="checkbox" id="chip-valor" class="chip-toggle" data-layer="context">
+                            <label for="chip-valor" class="chip-label">Valor/100k <span class="chip-count">21</span></label>
+                        </div>
+                        <p class="filter-hint">Contexto refina a classificação quando não há intenção clara.</p>
+                    </div>
+                </details>
+
+                <!-- Camada 4: Complemento -->
+                <details class="filter-layer complement">
+                    <summary>
+                        <span>Complemento +</span>
+                        <span class="layer-badge" id="badge-complement">5</span>
+                    </summary>
+                    <div class="filter-layer-body">
+                        <p>Flags de enriquecimento. Não definem categoria, apenas adicionam contexto adicional.</p>
+                        <div class="chip-group">
+                            <input type="checkbox" id="chip-tributario" class="chip-toggle" data-layer="complement">
+                            <label for="chip-tributario" class="chip-label">tributário <span class="chip-count">34</span></label>
+                            
+                            <input type="checkbox" id="chip-contingencia" class="chip-toggle" data-layer="complement">
+                            <label for="chip-contingencia" class="chip-label">contingência <span class="chip-count">21</span></label>
+                            
+                            <input type="checkbox" id="chip-hml" class="chip-toggle" data-layer="complement">
+                            <label for="chip-hml" class="chip-label">HML <span class="chip-count">12</span></label>
+                            
+                            <input type="checkbox" id="chip-xml" class="chip-toggle" data-layer="complement">
+                            <label for="chip-xml" class="chip-label">XML <span class="chip-count">8</span></label>
+                            
+                            <input type="checkbox" id="chip-sla" class="chip-toggle" data-layer="complement">
+                            <label for="chip-sla" class="chip-label">SLA 24h <span class="chip-count">18</span></label>
+                        </div>
+                        <p class="filter-hint">Complementos não definem categoria, apenas enriquecem o contexto.</p>
+                    </div>
+                </details>
+
             </div>
         </section>
         
@@ -779,9 +1175,12 @@
                 <p>Este gráfico mostra como os 245 itens DC-e fluem através das camadas de classificação: todos passam pela âncora verificada; 189 por intenção clara; 44 são reemissões; 12 cancelamentos.</p>
             </div>
             
-            <!-- Heatmap -->
-            <div class="visual-block">
-                <h3>Heatmap: Categorias x Status</h3>
+            <!-- Heatmap (colapsável - dados agora nos cards) -->
+            <details class="visual-block">
+                <summary style="cursor:pointer;font-weight:600;font-size:1rem;list-style:none;display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:0.7rem;">▶</span> Heatmap: Categorias x Status (expandir tabela completa)
+                </summary>
+                <div style="padding-top:var(--spacing-md);">
                 <svg class="dce-heatmap" viewBox="0 0 600 280" preserveAspectRatio="xMidYMid meet">
                     <!-- Cabeçalhos X -->
                     <text x="150" y="20" text-anchor="middle" font-size="0.9rem" font-weight="600">Processando</text>
@@ -835,7 +1234,8 @@
                     <text x="450" y="210" text-anchor="middle" fill="white" font-weight="700" font-size="0.9rem">2</text>
                 </svg>
                 <p>Cores: Verde (alto valor) | Amarelo (medio) | Vermelho (baixo). Mostra distribuicao de categorias por status operacional.</p>
-            </div>
+                </div>
+            </details>
             
             <!-- Progress Rings -->
             <div class="visual-block">
@@ -885,6 +1285,12 @@
                 <div class="category-card" data-cat="emissao">
                     <div class="category-number">01</div>
                     <h3>Emissão / Ativação</h3>
+                    <div class="card-status-bar" id="status-emissao">
+                        <span class="status-badge processing"><span class="badge-dot"></span>89</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>45</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>55</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                    </div>
                     <p class="category-description">Iniciar emissão de DC-e ou ativar processo de emissão. Foco: gerar, ativar, emitir.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -893,6 +1299,12 @@
                 <div class="category-card" data-cat="cnpj">
                     <div class="category-number">02</div>
                     <h3>CNPJ / PDI / Cadastro</h3>
+                    <div class="card-status-bar" id="status-cnpj">
+                        <span class="status-badge processing"><span class="badge-dot"></span>12</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>8</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>10</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>2</span>
+                    </div>
                     <p class="category-description">Resolver problema de origem/identidade/cadastro. Foco: validar CNPJ, PDI, origem.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -901,6 +1313,12 @@
                 <div class="category-card" data-cat="reemissao">
                     <div class="category-number">03</div>
                     <h3>Reemissão / Cancelada</h3>
+                    <div class="card-status-bar" id="status-reemissao">
+                        <span class="status-badge processing"><span class="badge-dot"></span>2</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>4</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>38</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                    </div>
                     <p class="category-description">Reemitir DC-e após cancelamento ou com novo destino. Foco: novo destino, reemitir.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -909,6 +1327,12 @@
                 <div class="category-card" data-cat="leves">
                     <div class="category-number">04</div>
                     <h3>VE Leves / LVE</h3>
+                    <div class="card-status-bar" id="status-leves">
+                        <span class="status-badge processing"><span class="badge-dot"></span>5</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>3</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>14</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                    </div>
                     <p class="category-description">Classificar por linha veicular específica (VE Leves, Locavia). Aplicar limites e SLA.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -917,6 +1341,12 @@
                 <div class="category-card" data-cat="cancelamento">
                     <div class="category-number">05</div>
                     <h3>Cancelamento / SLA</h3>
+                    <div class="card-status-bar" id="status-cancelamento">
+                        <span class="status-badge processing"><span class="badge-dot"></span>3</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>1</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>7</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>1</span>
+                    </div>
                     <p class="category-description">Respeitar prazo de cancelamento (24h obrigatorio). Critico: validar SLA.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -925,6 +1355,12 @@
                 <div class="category-card" data-cat="traas">
                     <div class="category-number">06</div>
                     <h3>TraaS / Frete / Realocação</h3>
+                    <div class="card-status-bar" id="status-traas">
+                        <span class="status-badge processing"><span class="badge-dot"></span>4</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>6</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>12</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>1</span>
+                    </div>
                     <p class="category-description">Gerenciar operação de transporte/frete/realocação. Validar operação associada.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -933,6 +1369,12 @@
                 <div class="category-card" data-cat="pesados">
                     <div class="category-number">07</div>
                     <h3>Pesados / Caminhões</h3>
+                    <div class="card-status-bar" id="status-pesados">
+                        <span class="status-badge processing"><span class="badge-dot"></span>1</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>2</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>5</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                    </div>
                     <p class="category-description">Linha operacional específica de pesados/caminhões. Aplicar validações de linha.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -941,6 +1383,12 @@
                 <div class="category-card" data-cat="desativacao">
                     <div class="category-number">08</div>
                     <h3>Desativação / Não Emissão</h3>
+                    <div class="card-status-bar" id="status-desativacao">
+                        <span class="status-badge processing"><span class="badge-dot"></span>0</span>
+                        <span class="status-badge queue"><span class="badge-dot"></span>1</span>
+                        <span class="status-badge done"><span class="badge-dot"></span>4</span>
+                        <span class="status-badge blocked"><span class="badge-dot"></span>0</span>
+                    </div>
                     <p class="category-description">Desabilitar fluxo ou bloquear emissao. Bloqueio: validar regra obrigatoria.</p>
                     <a href="https://ibmlocaliza.service-now.com/incident_list.do?sysparm_query=short_descriptionCONTAINSDC-e%5Eactive%3Dtrue" target="_blank" rel="noopener" class="category-link">Abrir Consulta</a>
                 </div>
@@ -1008,6 +1456,7 @@
         <!-- FOOTER -->
         <footer class="dce-footer">
             <p>
+                <span id="conn-dot" class="conn-dot offline"></span>
                 <strong>Painel de Triagem DC-e v1.0</strong> | 
                 Ultima atualizacao: 26/03/2026 | 
                 Baseado em taxonomy.json + decision-matrix.md
@@ -1095,6 +1544,92 @@
                 broadQuery: '^short_descriptionLIKEdesativacao^ORdescriptionLIKEdesativacao^ORshort_descriptionLIKEbloqueado^ORdescriptionLIKEbloqueado^ORshort_descriptionLIKEnao emissao^ORdescriptionLIKEnao emissao'
             }
         };
+
+        var isAuthenticated = false;
+
+        function setAuthMsg(text, type) {
+            var el = document.getElementById('auth-msg');
+            if (el) { el.textContent = text; el.className = 'auth-status-msg ' + type; }
+        }
+
+        function showAuthPanel() {
+            var overlay = document.getElementById('auth-overlay');
+            var panel = document.getElementById('auth-panel');
+            if (overlay) overlay.classList.add('active');
+            if (panel) panel.classList.add('active');
+        }
+
+        function hideAuthPanel() {
+            var overlay = document.getElementById('auth-overlay');
+            var panel = document.getElementById('auth-panel');
+            if (overlay) overlay.classList.remove('active');
+            if (panel) panel.classList.remove('active');
+        }
+
+        function updateConnDot(online) {
+            var dot = document.getElementById('conn-dot');
+            if (dot) dot.className = 'conn-dot ' + (online ? 'online' : 'offline');
+        }
+
+        function checkSession() {
+            setAuthMsg('Verificando sessão...', 'checking');
+            return fetch(serviceNowBase() + '/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'include'
+            }).then(function (res) {
+                if (res.ok) {
+                    isAuthenticated = true;
+                    updateConnDot(true);
+                    setAuthMsg('Conectado ao ServiceNow.', 'success');
+                    return true;
+                }
+                isAuthenticated = false;
+                updateConnDot(false);
+                setAuthMsg('Sessão não encontrada. Faça login e tente novamente.', 'error');
+                return false;
+            }).catch(function () {
+                isAuthenticated = false;
+                updateConnDot(false);
+                setAuthMsg('Não foi possível conectar (CORS ou rede). Faça login e tente novamente.', 'error');
+                return false;
+            });
+        }
+
+        function interceptLinks() {
+            document.addEventListener('click', function (e) {
+                var link = e.target.closest('a[href*="service-now.com"]');
+                if (!link) return;
+                if (isAuthenticated) return;
+                e.preventDefault();
+                showAuthPanel();
+            });
+        }
+
+        function bindAuthUI() {
+            var loginBtn = document.getElementById('auth-login-btn');
+            var checkBtn = document.getElementById('auth-check-btn');
+            var overlay = document.getElementById('auth-overlay');
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function () {
+                    window.open(serviceNowBase() + '/login.do', '_blank', 'noopener');
+                });
+            }
+            if (checkBtn) {
+                checkBtn.addEventListener('click', function () {
+                    checkSession().then(function (ok) {
+                        if (ok) {
+                            setTimeout(hideAuthPanel, 800);
+                            loadLiveData();
+                        }
+                    });
+                });
+            }
+            if (overlay) {
+                overlay.addEventListener('click', hideAuthPanel);
+            }
+        }
 
         function serviceNowBase() {
             if (window.location && /service-now\.com$/i.test(window.location.hostname)) {
@@ -1342,7 +1877,16 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             restoreStaticState('Modo inicial');
-            loadLiveData();
+            bindAuthUI();
+            interceptLinks();
+
+            checkSession().then(function (ok) {
+                if (ok) {
+                    loadLiveData();
+                } else {
+                    showAuthPanel();
+                }
+            });
         });
     }());
     </script>
