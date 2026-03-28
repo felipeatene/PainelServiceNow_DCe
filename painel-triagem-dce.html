@@ -1625,6 +1625,9 @@
         };
 
         var isAuthenticated = false;
+        var authAccessToken = null;  // JWT access token
+        var authRefreshToken = null; // JWT refresh token
+        var authTokenExpiry = 0;     // Timestamp do expiry
 
         function setAuthMsg(text, type) {
             var el = document.getElementById('auth-msg');
@@ -1650,6 +1653,38 @@
             if (dot) dot.className = 'conn-dot ' + (online ? 'online' : 'offline');
         }
 
+        function persistAuthTokens() {
+            try {
+                sessionStorage.setItem('dce_access_token', authAccessToken || '');
+                sessionStorage.setItem('dce_refresh_token', authRefreshToken || '');
+                sessionStorage.setItem('dce_token_expiry', String(authTokenExpiry || 0));
+            } catch (e) {
+                // storage opcional
+            }
+        }
+
+        function loadPersistedAuthTokens() {
+            try {
+                authAccessToken = sessionStorage.getItem('dce_access_token') || null;
+                authRefreshToken = sessionStorage.getItem('dce_refresh_token') || null;
+                authTokenExpiry = parseInt(sessionStorage.getItem('dce_token_expiry') || '0', 10) || 0;
+            } catch (e) {
+                authAccessToken = null;
+                authRefreshToken = null;
+                authTokenExpiry = 0;
+            }
+        }
+
+        function clearPersistedAuthTokens() {
+            try {
+                sessionStorage.removeItem('dce_access_token');
+                sessionStorage.removeItem('dce_refresh_token');
+                sessionStorage.removeItem('dce_token_expiry');
+            } catch (e) {
+                // noop
+            }
+        }
+
         function checkSession() {
             if (isEmbedded()) {
                 setAuthMsg('Verificando sessão...', 'checking');
@@ -1664,11 +1699,15 @@
                     isAuthenticated = false; updateConnDot(false); setAuthMsg('Erro de rede.', 'error'); return false;
                 });
             }
-            // Modo local: checa /auth/status
+            // Modo local: checa /auth/status com JWT Bearer token
             setAuthMsg('Verificando sessão...', 'checking');
+            var headers = { 'Accept': 'application/json' };
+            if (authAccessToken) {
+                headers['Authorization'] = 'Bearer ' + authAccessToken;
+            }
             return fetch('/auth/status', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
+                headers: headers,
                 credentials: 'include'
             }).then(function (res) { return res.json(); })
               .then(function (data) {
@@ -1680,12 +1719,15 @@
                     return true;
                 }
                 isAuthenticated = false;
+                clearPersistedAuthTokens();
                 updateConnDot(false);
                 setAuthMsg('', '');
                 showFormState();
                 return false;
             }).catch(function () {
-                isAuthenticated = false; updateConnDot(false);
+                isAuthenticated = false;
+                clearPersistedAuthTokens();
+                updateConnDot(false);
                 setAuthMsg('Erro ao verificar sessão.', 'error');
                 showFormState();
                 return false;
@@ -1743,26 +1785,31 @@
                     fetch('/auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
                         body: JSON.stringify({ username: user.trim(), password: pass })
                     }).then(function (r) { return r.json(); })
                       .then(function (data) {
                         loginBtn.disabled = false;
                         loginBtn.textContent = 'Conectar';
                         if (data.ok) {
+                            // Armazena JWT tokens
+                            authAccessToken = data.access_token;
+                            authRefreshToken = data.refresh_token;
+                            authTokenExpiry = Math.floor(Date.now() / 1000) + data.expires_in;
+                            persistAuthTokens();
                             isAuthenticated = true;
                             updateConnDot(true);
                             setAuthMsg('Conectado como ' + data.user + '.', 'success');
                             showConnectedState(data.user);
+                            (document.getElementById('auth-pass') || {}).value = '';  // Limpa senha
                             setTimeout(hideAuthPanel, 800);
                             loadLiveData();
                         } else {
                             setAuthMsg(data.error || 'Falha na autenticação.', 'error');
                         }
-                    }).catch(function () {
+                    }).catch(function (err) {
                         loginBtn.disabled = false;
                         loginBtn.textContent = 'Conectar';
-                        setAuthMsg('Erro de rede ao tentar login.', 'error');
+                        setAuthMsg('Erro de rede ao tentar login: ' + err.message, 'error');
                     });
                 });
             }
@@ -1783,13 +1830,23 @@
             }
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function () {
-                    fetch('/auth/logout', { method: 'POST', credentials: 'include' })
-                        .then(function () {
-                            isAuthenticated = false;
-                            updateConnDot(false);
-                            showFormState();
-                            setAuthMsg('Desconectado.', 'checking');
-                        });
+                    var headers = {};
+                    if (authAccessToken) {
+                        headers['Authorization'] = 'Bearer ' + authAccessToken;
+                    }
+                    fetch('/auth/logout', {
+                        method: 'POST',
+                        headers: headers
+                    }).then(function () {
+                        authAccessToken = null;
+                        authRefreshToken = null;
+                        authTokenExpiry = 0;
+                        clearPersistedAuthTokens();
+                        isAuthenticated = false;
+                        updateConnDot(false);
+                        showFormState();
+                        setAuthMsg('Desconectado.', 'checking');
+                    });
                 });
             }
             if (overlay) {
@@ -1906,15 +1963,56 @@
         }
 
         function fetchJson(url) {
+            var headers = { 'Accept': 'application/json' };
+            // Adiciona JWT Bearer token se disponível
+            if (authAccessToken) {
+                headers['Authorization'] = 'Bearer ' + authAccessToken;
+            }
             return fetch(url, {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
-                credentials: 'include'
+                headers: headers
             }).then(function (res) {
                 if (!res.ok) {
+                    if (res.status === 401) {
+                        // Token expirado ou inválido
+                        if (authRefreshToken) {
+                            // Tenta renovar o token
+                            return refreshAccessToken().then(function (ok) {
+                                if (ok) {
+                                    // Retenta a requisição com novo token
+                                    return fetchJson(url);
+                                }
+                                throw new Error('Sessão expirada. Faça login novamente.');
+                            });
+                        }
+                        isAuthenticated = false;
+                        showAuthPanel();
+                    }
                     throw new Error('HTTP ' + res.status);
                 }
                 return res.json();
+            });
+        }
+
+        function refreshAccessToken() {
+            if (!authRefreshToken) {
+                return Promise.resolve(false);
+            }
+            return fetch('/auth/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: authRefreshToken })
+            }).then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.ok && data.access_token) {
+                    authAccessToken = data.access_token;
+                    authTokenExpiry = Math.floor(Date.now() / 1000) + data.expires_in;
+                    persistAuthTokens();
+                    return true;
+                }
+                return false;
+            }).catch(function () {
+                return false;
             });
         }
 
@@ -2306,8 +2404,13 @@
                 '/getByTitle(\'Plano DCE  Cenrios V2\')/items' +
                 '?$select=Title,Status,Estado,Situacao&$top=5000';
 
+            var headers = { 'Accept': 'application/json;odata=nometadata' };
+            if (authAccessToken) {
+                headers['Authorization'] = 'Bearer ' + authAccessToken;
+            }
+
             fetch(listUrl, {
-                headers: { 'Accept': 'application/json;odata=nometadata' }
+                headers: headers
             }).then(function (res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
@@ -2335,6 +2438,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            loadPersistedAuthTokens();
             restoreStaticState('Modo inicial');
             bindAuthUI();
             interceptLinks();

@@ -907,6 +907,9 @@
         /* ---- Auth logic ---- */
         const SN_BASE = "https://ibmlocaliza.service-now.com";
         let isAuthenticated = false;
+        let authAccessToken = null;   // JWT access token
+        let authRefreshToken = null;  // JWT refresh token
+        let authTokenExpiry = 0;      // Timestamp do expiry
 
         const authOverlay = document.getElementById("auth-overlay");
         const authPanel = document.getElementById("auth-panel");
@@ -932,27 +935,83 @@
             connDot.className = "conn-dot " + (online ? "online" : "offline");
         }
 
+        function persistAuthTokens() {
+            try {
+                sessionStorage.setItem("dce_access_token", authAccessToken || "");
+                sessionStorage.setItem("dce_refresh_token", authRefreshToken || "");
+                sessionStorage.setItem("dce_token_expiry", String(authTokenExpiry || 0));
+            } catch (e) {
+                // Storage opcional
+            }
+        }
+
+        function loadPersistedAuthTokens() {
+            try {
+                authAccessToken = sessionStorage.getItem("dce_access_token") || null;
+                authRefreshToken = sessionStorage.getItem("dce_refresh_token") || null;
+                authTokenExpiry = parseInt(sessionStorage.getItem("dce_token_expiry") || "0", 10) || 0;
+            } catch (e) {
+                authAccessToken = null;
+                authRefreshToken = null;
+                authTokenExpiry = 0;
+            }
+        }
+
+        function clearPersistedAuthTokens() {
+            try {
+                sessionStorage.removeItem("dce_access_token");
+                sessionStorage.removeItem("dce_refresh_token");
+                sessionStorage.removeItem("dce_token_expiry");
+            } catch (e) {
+                // noop
+            }
+        }
+
+        function startMicrosoftSso() {
+            setAuthMsg("Redirecionando para Microsoft...", "checking");
+            fetch("/auth/microsoft/start", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            }).then(function (res) {
+                return res.json();
+            }).then(function (data) {
+                if (!data.ok || !data.auth_url) {
+                    throw new Error(data.error || "SSO indisponível no servidor");
+                }
+                window.open(data.auth_url, "_blank", "noopener");
+            }).catch(function (err) {
+                setAuthMsg("Falha ao iniciar SSO: " + err.message, "error");
+            });
+        }
+
         function checkSession() {
             setAuthMsg("Verificando sessão...", "checking");
-            return fetch(SN_BASE + "/api/now/table/sys_user?sysparm_limit=1&sysparm_fields=user_name", {
+            // Tenta primeiro verificar via servidor local com JWT
+            var headers = { "Accept": "application/json" };
+            if (authAccessToken) {
+                headers["Authorization"] = "Bearer " + authAccessToken;
+            }
+            return fetch("/auth/status", {
                 method: "GET",
-                headers: { "Accept": "application/json" },
-                credentials: "include"
-            }).then(function (res) {
-                if (res.ok) {
+                headers: headers
+            }).then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.authenticated) {
                     isAuthenticated = true;
                     updateConnDot(true);
-                    setAuthMsg("Conectado ao ServiceNow.", "success");
+                    setAuthMsg("Conectado como " + data.user + ".", "success");
                     return true;
                 }
                 isAuthenticated = false;
+                clearPersistedAuthTokens();
                 updateConnDot(false);
-                setAuthMsg("Sessão não encontrada. Faça login e tente novamente.", "error");
+                setAuthMsg("Faça login para acessar os dados.", "error");
                 return false;
             }).catch(function () {
                 isAuthenticated = false;
+                clearPersistedAuthTokens();
                 updateConnDot(false);
-                setAuthMsg("Não foi possível conectar (CORS ou rede). Faça login e tente novamente.", "error");
+                setAuthMsg("Erro ao verificar sessão. Tente novamente.", "error");
                 return false;
             });
         }
@@ -968,18 +1027,55 @@
         }
 
         document.getElementById("auth-login-btn").addEventListener("click", function () {
-            window.open(SN_BASE + "/login.do", "_blank", "noopener");
+            startMicrosoftSso();
         });
 
         document.getElementById("auth-check-btn").addEventListener("click", function () {
             checkSession().then(function (ok) {
                 if (ok) {
                     setTimeout(hideAuthPanel, 800);
+                    loadLiveData && loadLiveData();  // Recarrega dados se função existir
                 }
             });
         });
 
         authOverlay.addEventListener("click", hideAuthPanel);
+
+        function refreshAccessToken() {
+            if (!authRefreshToken) {
+                return Promise.resolve(false);
+            }
+            return fetch("/auth/refresh", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh_token: authRefreshToken })
+            }).then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.ok && data.access_token) {
+                    authAccessToken = data.access_token;
+                    authTokenExpiry = Math.floor(Date.now() / 1000) + data.expires_in;
+                    persistAuthTokens();
+                    return true;
+                }
+                return false;
+            }).catch(function () {
+                return false;
+            });
+        }
+
+        window.addEventListener("message", function (event) {
+            if (!event || !event.data || event.data.type !== "dce_auth_success") {
+                return;
+            }
+            authAccessToken = event.data.access_token || null;
+            authRefreshToken = event.data.refresh_token || null;
+            authTokenExpiry = Math.floor(Date.now() / 1000) + (event.data.expires_in || 0);
+            persistAuthTokens();
+            isAuthenticated = true;
+            updateConnDot(true);
+            setAuthMsg("Conectado via Microsoft como " + (event.data.user || "usuário") + ".", "success");
+            setTimeout(hideAuthPanel, 500);
+        });
 
         const modal = document.getElementById("modal");
         const modalTitle = document.getElementById("modal-title");
@@ -1168,6 +1264,7 @@
         }
 
         function init() {
+            loadPersistedAuthTokens();
             buildMetrics();
             renderCards();
             bindEvents();

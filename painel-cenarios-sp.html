@@ -466,6 +466,33 @@
     var LIST_NAME  = 'Plano DCE  Cenrios V2';   // duplo espaço + sem acento (URL original)
     var PAGE_SIZE  = 20;
 
+    /* ---- Auth (JWT) ---- */
+    var authAccessToken  = null;
+    var authRefreshToken = null;
+    var authTokenExpiry  = 0;
+
+    function loadPersistedAuthTokens() {
+        try {
+            authAccessToken = sessionStorage.getItem('dce_access_token') || null;
+            authRefreshToken = sessionStorage.getItem('dce_refresh_token') || null;
+            authTokenExpiry = parseInt(sessionStorage.getItem('dce_token_expiry') || '0', 10) || 0;
+        } catch (e) {
+            authAccessToken = null;
+            authRefreshToken = null;
+            authTokenExpiry = 0;
+        }
+    }
+
+    function persistAuthTokens() {
+        try {
+            sessionStorage.setItem('dce_access_token', authAccessToken || '');
+            sessionStorage.setItem('dce_refresh_token', authRefreshToken || '');
+            sessionStorage.setItem('dce_token_expiry', String(authTokenExpiry || 0));
+        } catch (e) {
+            // noop
+        }
+    }
+
     /* ---- State ---- */
     var allItems    = [];   // raw SharePoint items
     var filtered    = [];   // after search + status filter
@@ -494,10 +521,27 @@
         var url = SP_PROXY_BASE + '/_api/web/lists/getByTitle(\'' + encodeURIComponent(LIST_NAME) + '\')/items' +
             '?$select=ID,Title,Status,Estado,Situacao,Passos,Descricao&$top=5000&$orderby=Title';
 
+        var headers = { 'Accept': 'application/json;odata=nometadata' };
+        // Adiciona JWT Bearer token se disponível
+        if (authAccessToken) {
+            headers['Authorization'] = 'Bearer ' + authAccessToken;
+        }
+
         fetch(url, {
-            headers: { 'Accept': 'application/json;odata=nometadata' }
+            headers: headers
         }).then(function (res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status + ' — verifique se está logado no SharePoint.');
+            if (!res.ok) {
+                if (res.status === 401 && authRefreshToken) {
+                    // Tenta renovar token
+                    return refreshAccessToken().then(function (ok) {
+                        if (ok) {
+                            return fetchScenarios();  // Retenta
+                        }
+                        throw new Error('Sessão expirada. Faça login novamente.');
+                    });
+                }
+                throw new Error('HTTP ' + res.status + ' — verifique se está logado no SharePoint.');
+            }
             return res.json();
         }).then(function (data) {
             allItems = data.value || [];
@@ -511,6 +555,28 @@
             bannerInfo.textContent = 'Tente abrir o SharePoint em outra aba e recarregar.';
             document.getElementById('btn-refresh').disabled = false;
             showEmpty(err.message || 'Erro ao conectar ao SharePoint.');
+        });
+    }
+
+    function refreshAccessToken() {
+        if (!authRefreshToken) {
+            return Promise.resolve(false);
+        }
+        return fetch('/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: authRefreshToken })
+        }).then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.ok && data.access_token) {
+                authAccessToken = data.access_token;
+                authTokenExpiry = Math.floor(Date.now() / 1000) + data.expires_in;
+                persistAuthTokens();
+                return true;
+            }
+            return false;
+        }).catch(function () {
+            return false;
         });
     }
 
@@ -724,6 +790,7 @@
     document.getElementById('btn-refresh').addEventListener('click', fetchScenarios);
 
     /* ---- Init ---- */
+    loadPersistedAuthTokens();
     loadTags();
     fetchScenarios();
 
